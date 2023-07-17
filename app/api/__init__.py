@@ -1,6 +1,8 @@
 from flask import Blueprint
 from flask_restx import Api
+
 from app.api.status import status_api as status_api
+
 
 api_bp = Blueprint('api_bp', __name__)
 
