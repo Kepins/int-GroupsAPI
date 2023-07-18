@@ -39,7 +39,6 @@ class User(Base):
     modification_date: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
 
     groups_admin: Mapped[List["Group"]] = relationship(back_populates="admin",
-                                                       cascade="all, delete-orphan",
                                                        primaryjoin=lambda: User.id == Group.admin_id
                                                        )
     groups: Mapped[List["Group"]] = relationship(secondary=user_group, back_populates="users")
@@ -59,7 +58,7 @@ class Group(Base):
     __tablename__ = "group"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    admin_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    admin_id: Mapped[Optional[int]] = mapped_column(ForeignKey("user.id"))
     name: Mapped[str] = mapped_column(String(100))
     description: Mapped[Optional[str]] = mapped_column(String(200))
     creation_date: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
