@@ -15,7 +15,8 @@ from sqlalchemy.orm import relationship
 
 
 class Base(DeclarativeBase):
-    pass
+    creation_date: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
+    modification_date: Mapped[datetime.datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
 
 
 user_group = Table(
@@ -35,8 +36,6 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(320), unique=True)
     pass_hash: Mapped[str] = mapped_column(String(200))
     is_activated: Mapped[bool] = mapped_column(default=False)
-    creation_date: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
-    modification_date: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
 
     groups_admin: Mapped[List["Group"]] = relationship(back_populates="admin",
                                                        primaryjoin=lambda: User.id == Group.admin_id
@@ -61,8 +60,6 @@ class Group(Base):
     admin_id: Mapped[Optional[int]] = mapped_column(ForeignKey("user.id"))
     name: Mapped[str] = mapped_column(String(100))
     description: Mapped[Optional[str]] = mapped_column(String(200))
-    creation_date: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
-    modification_date: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
 
     admin: Mapped["User"] = relationship(back_populates="groups_admin", foreign_keys=[admin_id])
     users: Mapped[List["User"]] = relationship(secondary=user_group, back_populates="groups")
@@ -89,8 +86,6 @@ class Event(Base):
     name: Mapped[str] = mapped_column(String(100))
     description: Mapped[Optional[str]] = mapped_column(String(200))
     date: Mapped[datetime.datetime] = mapped_column()
-    creation_date: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
-    modification_date: Mapped[datetime.datetime] = mapped_column(server_default=func.now())
 
     group: Mapped["Group"] = relationship(back_populates="events", foreign_keys=[group_id])
 
