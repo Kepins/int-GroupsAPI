@@ -1,6 +1,3 @@
-import os
-
-from dotenv import load_dotenv
 from flask_restx import Resource
 from flask_restx import Namespace
 from itsdangerous import URLSafeSerializer
@@ -13,6 +10,7 @@ from marshmallow import ValidationError
 from sqlalchemy import select
 from werkzeug.security import generate_password_hash
 
+from app import config
 from app.db import Session
 from app.email.verification import send_verification_email
 from app.validation import validate_schema
@@ -22,16 +20,14 @@ user_register_api = Namespace('app/user', description='Register user')
 
 
 def create_token(user):
-    load_dotenv()
-    s = URLSafeSerializer(os.environ.get("SECRET_KEY"))
+    s = URLSafeSerializer(config.SECRET_KEY)
 
     token = s.dumps({"id": user.id}, salt="activate")
     return token
 
 
 def user_id_from_token(token):
-    load_dotenv()
-    s = URLSafeSerializer(os.environ.get("SECRET_KEY"))
+    s = URLSafeSerializer(config.SECRET_KEY)
 
     try:
         dic = s.loads(token, salt="activate")

@@ -1,6 +1,8 @@
 from flask import Flask
 
-from app.api import api
+from app.config import Config
+
+config = Config()
 
 
 def create_app():

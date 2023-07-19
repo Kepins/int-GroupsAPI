@@ -1,13 +1,13 @@
 from email.mime.text import MIMEText
 
-from app.email import SENDER_EMAIL
+from app import config
 from app.email import send_email
 
 
 def send_verification_email(receiver_email, verification_link):
     text = f"Verification link: {verification_link}"
     message = MIMEText(text)
-    message['From'] = SENDER_EMAIL
+    message['From'] = config.SENDER_EMAIL
     message['To'] = receiver_email
     message["Bcc"] = receiver_email
     message['Subject'] = 'Verify your email address for GroupsAPP.'

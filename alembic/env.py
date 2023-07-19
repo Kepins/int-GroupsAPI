@@ -1,5 +1,3 @@
-import os
-
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
@@ -7,7 +5,7 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from dotenv import load_dotenv
+from app import config as app_config
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -29,12 +27,11 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
-load_dotenv()
 section = config.config_ini_section
-config.set_section_option(section, "POSTGRESQL_USER", os.environ.get("POSTGRESQL_USER"))
-config.set_section_option(section, "POSTGRESQL_PASSWD", os.environ.get("POSTGRESQL_PASSWD"))
-config.set_section_option(section, "POSTGRESQL_HOSTNAME", os.environ.get("POSTGRESQL_HOSTNAME"))
-config.set_section_option(section, "POSTGRESQL_DB_NAME", os.environ.get("POSTGRESQL_DB_NAME"))
+config.set_section_option(section, "POSTGRESQL_USER", app_config.POSTGRES_USER)
+config.set_section_option(section, "POSTGRESQL_PASSWD", app_config.POSTGRES_PASSWD)
+config.set_section_option(section, "POSTGRESQL_HOSTNAME", app_config.POSTGRES_HOSTNAME)
+config.set_section_option(section, "POSTGRESQL_DB_NAME", app_config.POSTGRES_DB_NAME)
 
 
 def run_migrations_offline() -> None:
