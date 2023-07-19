@@ -90,3 +90,24 @@ class Register(Resource):
         send_verification_email(user.email, verification_url)
 
         return {'id': user.id}, 201
+
+
+@user_register_api.route('/activate/<token>/')
+class Activate(Resource):
+    def get(self, token):
+        user_id = user_id_from_token(token)
+        if not user_id:
+            return {'error': 'invalid token'}, 400
+
+        session = Session()
+
+        user = session.scalar(select(User).where(User.id == user_id))
+
+        user.is_activated = True
+
+        session.add(user)
+        session.commit()
+
+        Session.remove()
+
+        return {'status': 'ok'}, 200
