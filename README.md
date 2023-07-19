@@ -6,6 +6,7 @@ The GroupsAPI application allows users to create groups and create events for th
 
 - Python3.11 installed
 - Access to an PostgreSQL database
+- Account(e.g. Gmail) for sending emails using SMPT
 
 ## Installation
 
@@ -25,6 +26,10 @@ Create **.env** file with the same keys as **.env.example**:
 - *POSTGRESQL_PASSWD* - user's password
 - *POSTGRESQL_HOSTNAME* - host on which DB is running
 - *POSTGRESQL_DB_NAME* - name of DB
+- *SMTP_PORT* = port on which smtp server is running
+- *SMTP_SERVER* = hostname of smtp server
+- *SMTP_SENDER_EMAIL* = email that app will use
+- *SMTP_SENDER_PASSWD* = password for account
 - *FLASK_RUN_HOST* - host on which the app will run
 - *FLASK_RUN_PORT* - port on which the app will run
 
