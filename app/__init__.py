@@ -17,4 +17,9 @@ def create_app(env=".env"):
     from app.api import api_bp
     app.register_blueprint(api_bp)
 
+    @app.after_request
+    def after_request_func(response):
+        db.Session.remove()
+        return response
+
     return app

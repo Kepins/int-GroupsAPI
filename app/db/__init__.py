@@ -12,5 +12,5 @@ class AlchemyDatabase:
             f'postgresql+psycopg2://{app.config["POSTGRES_USER"]}:{app.config["POSTGRES_PASSWD"]}'
             f'@{app.config["POSTGRES_HOSTNAME"]}/{app.config["POSTGRES_DB_NAME"]}')
 
-        session_factory = sessionmaker(bind=engine, expire_on_commit=False)
+        session_factory = sessionmaker(bind=engine)
         self.Session = scoped_session(session_factory)

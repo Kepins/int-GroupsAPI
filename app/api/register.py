@@ -80,7 +80,6 @@ class Register(Resource):
 
         session.add(user)
         session.commit()
-        db.Session.remove()
 
         verification_url = f'http://127.0.0.1:5000/app/user/activate/{create_token(user)}'
         send_verification_email(user.email, verification_url)
@@ -103,7 +102,5 @@ class Activate(Resource):
 
         session.add(user)
         session.commit()
-
-        db.Session.remove()
 
         return {'status': 'ok'}, 200
