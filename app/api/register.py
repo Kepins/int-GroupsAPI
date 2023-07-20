@@ -64,9 +64,7 @@ class Register(Resource):
         user_schema = UserCreateSchema().load(user_register_api.payload)
 
         # Query to check if user already exists
-        user = session.execute(select(User)
-                               .where(User.email == user_schema['email'])
-                               ).first()
+        user = session.scalar(select(User).where(User.email == user_schema['email']))
 
         if user:
             return {'error': 'already_exists'}, 403
