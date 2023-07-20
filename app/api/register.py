@@ -1,6 +1,7 @@
 from flask import current_app
 from flask_restx import Resource
 from flask_restx import Namespace
+from flask_restx import fields as rfields
 from itsdangerous import URLSafeSerializer
 from itsdangerous import BadSignature
 from marshmallow import Schema
@@ -55,8 +56,27 @@ class UserCreateSchema(Schema):
             raise ValidationError("Must contain at least one digit.")
 
 
+user_create = user_register_api.model('UserCreate', {
+    'first_name': rfields.String,
+    'last_name': rfields.String,
+    'password': rfields.String,
+    'email': rfields.String,
+})
+
+
+user_created = user_register_api.model('UserCreated', {
+    'id': rfields.Integer,
+    'first_name': rfields.String,
+    'last_name': rfields.String,
+    'email': rfields.String,
+})
+
+
 @user_register_api.route('/')
 class Register(Resource):
+    @user_register_api.expect(user_create)
+    @user_register_api.marshal_with(user_created, code=201)
+    @user_register_api.response(409, 'Already Exists')
     @validate_schema(user_register_api, UserCreateSchema)
     def post(self):
         session = db.Session()
@@ -67,7 +87,7 @@ class Register(Resource):
         user = session.scalar(select(User).where(User.email == user_schema['email']))
 
         if user:
-            return {'error': 'already_exists'}, 403
+            user_register_api.abort(409, "Already Exists")
 
         user = User(first_name=user_schema['first_name'],
                     last_name=user_schema['last_name'],
@@ -82,15 +102,17 @@ class Register(Resource):
         verification_url = f'http://127.0.0.1:5000/app/user/activate/{create_token(user)}'
         send_verification_email(user.email, verification_url)
 
-        return {'id': user.id}, 201
+        return user, 201
 
 
 @user_register_api.route('/activate/<token>/')
 class Activate(Resource):
+    @user_register_api.response(200, 'Success')
+    @user_register_api.response(400, "Invalid Token")
     def get(self, token):
         user_id = user_id_from_token(token)
         if not user_id:
-            return {'error': 'invalid token'}, 400
+            user_register_api.abort(400, "Invalid Token")
 
         session = db.Session()
 
@@ -101,4 +123,4 @@ class Activate(Resource):
         session.add(user)
         session.commit()
 
-        return {'status': 'ok'}, 200
+        return {'message': 'Success'}, 200

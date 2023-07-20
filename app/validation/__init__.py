@@ -7,6 +7,7 @@ from marshmallow import ValidationError
 
 def validate_schema(api: Namespace, schema: type[Schema]):
     def decorator_validate(func):
+        @api.response(400, "Validation Error")
         @functools.wraps(func)
         def wrapper_validate(*args, **kwargs):
             payload = api.payload
