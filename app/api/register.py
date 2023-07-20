@@ -1,4 +1,4 @@
-from flask import current_app
+from flask import current_app, url_for
 from flask_restx import Resource
 from flask_restx import Namespace
 from flask_restx import fields as rfields
@@ -99,7 +99,7 @@ class Register(Resource):
         session.add(user)
         session.commit()
 
-        verification_url = f'http://127.0.0.1:5000/app/user/activate/{create_token(user)}'
+        verification_url = url_for("api_bp.app/users_activate", _external=True, token=create_token(user))
         send_verification_email(user.email, verification_url)
 
         return user, 201
