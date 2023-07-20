@@ -5,7 +5,7 @@ The GroupsAPI application allows users to create groups and create events for th
 ## Requirements
 
 - Python3.11 installed
-- Access to an PostgreSQL database
+- Access to two PostgreSQL databases: dev+test
 - Account(e.g. Gmail) for sending emails using SMPT
 
 ## Installation
@@ -21,7 +21,7 @@ Run below commands in the terminal from the project root.
 
 ## Configuration
 
-Create **.env** file with the same keys as **.env.example**:
+Create **.env** and **.env.test** files with the same keys as **.env.example**:
 - *POSTGRESQL_USER* - user with access to DB
 - *POSTGRESQL_PASSWD* - user's password
 - *POSTGRESQL_HOSTNAME* - host on which DB is running
