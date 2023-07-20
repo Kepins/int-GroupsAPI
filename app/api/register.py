@@ -16,7 +16,7 @@ from app.email.verification import send_verification_email
 from app.validation import validate_schema
 from models import User
 
-user_register_api = Namespace('app/user', description='Register user')
+user_register_api = Namespace('app/users', description='Register user')
 
 
 def create_token(user):
