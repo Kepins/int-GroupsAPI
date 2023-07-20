@@ -4,3 +4,4 @@
 *.pyc
 # environmental variables
 .env
+.env.test

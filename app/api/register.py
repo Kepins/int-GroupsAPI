@@ -1,3 +1,4 @@
+from flask import current_app
 from flask_restx import Resource
 from flask_restx import Namespace
 from itsdangerous import URLSafeSerializer
@@ -10,8 +11,7 @@ from marshmallow import ValidationError
 from sqlalchemy import select
 from werkzeug.security import generate_password_hash
 
-from app import config
-from app.db import Session
+from app import db
 from app.email.verification import send_verification_email
 from app.validation import validate_schema
 from models import User
@@ -20,14 +20,14 @@ user_register_api = Namespace('app/user', description='Register user')
 
 
 def create_token(user):
-    s = URLSafeSerializer(config.SECRET_KEY)
+    s = URLSafeSerializer(current_app.config["SECRET_KEY"])
 
     token = s.dumps({"id": user.id}, salt="activate")
     return token
 
 
 def user_id_from_token(token):
-    s = URLSafeSerializer(config.SECRET_KEY)
+    s = URLSafeSerializer(current_app.config["SECRET_KEY"])
 
     try:
         dic = s.loads(token, salt="activate")
@@ -59,7 +59,7 @@ class UserCreateSchema(Schema):
 class Register(Resource):
     @validate_schema(user_register_api, UserCreateSchema)
     def post(self):
-        session = Session()
+        session = db.Session()
 
         user_schema = UserCreateSchema().load(user_register_api.payload)
 
@@ -80,7 +80,7 @@ class Register(Resource):
 
         session.add(user)
         session.commit()
-        Session.remove()
+        db.Session.remove()
 
         verification_url = f'http://127.0.0.1:5000/app/user/activate/{create_token(user)}'
         send_verification_email(user.email, verification_url)
@@ -95,7 +95,7 @@ class Activate(Resource):
         if not user_id:
             return {'error': 'invalid token'}, 400
 
-        session = Session()
+        session = db.Session()
 
         user = session.scalar(select(User).where(User.id == user_id))
 
@@ -104,6 +104,6 @@ class Activate(Resource):
         session.add(user)
         session.commit()
 
-        Session.remove()
+        db.Session.remove()
 
         return {'status': 'ok'}, 200
