@@ -14,6 +14,7 @@ from werkzeug.security import generate_password_hash
 
 from app import db
 from app.email import send_verification_email
+from app.email import EmailServiceError
 from app.validation import validate_schema
 from models import User
 
@@ -77,6 +78,7 @@ class Register(Resource):
     @user_register_api.expect(user_create)
     @user_register_api.marshal_with(user_created, code=201)
     @user_register_api.response(409, 'Already Exists')
+    @user_register_api.response(503, 'Email Service Down')
     @validate_schema(user_register_api, UserCreateSchema)
     def post(self):
         user_schema = UserCreateSchema().load(user_register_api.payload)
@@ -96,9 +98,14 @@ class Register(Resource):
 
         db.Session.add(user)
         db.Session.commit()
-
         verification_url = url_for("api_bp.app/users_activate", _external=True, token=create_token(user))
-        send_verification_email(user.email, verification_url)
+        try:
+            send_verification_email(user.email, verification_url)
+        except EmailServiceError as e:
+            db.Session.delete(user)
+            db.Session.commit()
+            user_register_api.abort(503, "Email Service Down")
+
 
         return user, 201
 

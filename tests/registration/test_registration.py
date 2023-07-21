@@ -38,6 +38,19 @@ def test_registration_already_exists(app, client):
     assert resp.json["message"] == "Already Exists"
 
 
+def test_register_email_service_down(app, client):
+    app.config["SMTP_SERVER"] = ""
+    app.config["SMTP_PORT"] = 0
+
+    resp = client.post("/app/users/",
+                       data=json.dumps({"first_name": "Flipek", "last_name": "Nowak",
+                                        "email": "FiliNowak@test.com", "password": "testPaswd2"}),
+                       content_type='application/json')
+
+    assert resp.status_code == 503
+    assert app.db.Session.scalar(select(User).where(User.email == "FiliNowak@test.com")) is None
+
+
 def test_registration_valid(app, client):
     with patch("app.api.register.send_verification_email", MagicMock()) as mail_mock:
         resp = client.post("/app/users/",
