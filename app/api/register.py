@@ -79,12 +79,10 @@ class Register(Resource):
     @user_register_api.response(409, 'Already Exists')
     @validate_schema(user_register_api, UserCreateSchema)
     def post(self):
-        session = db.Session()
-
         user_schema = UserCreateSchema().load(user_register_api.payload)
 
         # Query to check if user already exists
-        user = session.scalar(select(User).where(User.email == user_schema['email']))
+        user = db.Session.scalar(select(User).where(User.email == user_schema['email']))
 
         if user:
             user_register_api.abort(409, "Already Exists")
@@ -96,8 +94,8 @@ class Register(Resource):
                     email=user_schema['email'],
                     )
 
-        session.add(user)
-        session.commit()
+        db.Session.add(user)
+        db.Session.commit()
 
         verification_url = url_for("api_bp.app/users_activate", _external=True, token=create_token(user))
         send_verification_email(user.email, verification_url)
@@ -114,13 +112,11 @@ class Activate(Resource):
         if not user_id:
             user_register_api.abort(400, "Invalid Token")
 
-        session = db.Session()
-
-        user = session.scalar(select(User).where(User.id == user_id))
+        user = db.Session.scalar(select(User).where(User.id == user_id))
 
         user.is_activated = True
 
-        session.add(user)
-        session.commit()
+        db.Session.add(user)
+        db.Session.commit()
 
         return {'message': 'Success'}, 200

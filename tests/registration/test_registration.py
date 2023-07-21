@@ -27,8 +27,8 @@ def test_registration_not_valid_field_missing(app, client):
 def test_registration_already_exists(app, client):
     user = User(first_name="Filip", last_name="Nowak",
                 email="FiliNowak@test.com", pass_hash=generate_password_hash("testPaswd1"))
-    app.db.Session().add(user)
-    app.db.Session().commit()
+    app.db.Session.add(user)
+    app.db.Session.commit()
     resp = client.post("/app/users/",
                        data=json.dumps({"first_name": "Flipek", "last_name": "Nowak",
                                         "email": "FiliNowak@test.com", "password": "testPaswd2"}),
@@ -45,7 +45,7 @@ def test_registration_valid(app, client):
                                  "email": "jacek@test.com", "password": "testPaswd1"}),
                            content_type='application/json')
 
-        db_user = app.db.Session().scalar(select(User).where(User.email == "jacek@test.com"))
+        db_user = app.db.Session.scalar(select(User).where(User.email == "jacek@test.com"))
         app.db.Session.remove()
 
         # Response
@@ -69,7 +69,7 @@ def test_registration_valid(app, client):
         url_activate = mail_mock.call_args[0][1]
         resp_activate = client.get(url_activate)
 
-        db_user = app.db.Session().scalar(select(User).where(User.email == "jacek@test.com"))
+        db_user = app.db.Session.scalar(select(User).where(User.email == "jacek@test.com"))
         app.db.Session.remove()
 
         assert resp_activate.status_code == 200
