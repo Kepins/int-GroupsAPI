@@ -1,13 +1,15 @@
 import os
-
+import logging
 from logging.config import fileConfig
+import re
 
+from dotenv import dotenv_values, load_dotenv
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
 
-from dotenv import load_dotenv
+USE_TWOPHASE = False
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -17,24 +19,48 @@ config = context.config
 # This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
+logger = logging.getLogger("alembic.env")
 
-# add your model's MetaData object here
-# for 'autogenerate' support
+# gather section names referring to different
+# databases.  These are named "engine1", "engine2"
+# in the sample .ini file.
+db_names = config.get_main_option("databases", "")
+
+# add your model's MetaData objects here
+# for 'autogenerate' support.  These must be set
+# up to hold just those tables targeting a
+# particular database. table.tometadata() may be
+# helpful here in case a "copy" of
+# a MetaData is needed.
+# from myapp import mymodel
+# target_metadata = {
+#       'engine1':mymodel.metadata1,
+#       'engine2':mymodel.metadata2
+# }
 from models import Base
-target_metadata = Base.metadata
-# target_metadata = None
+target_metadata = {
+    'dev': Base.metadata,
+    'test': Base.metadata,
+}
+
+env_dev = dotenv_values(".env")
+config.set_section_option("dev", "POSTGRESQL_USER", env_dev["POSTGRESQL_USER"])
+config.set_section_option("dev", "POSTGRESQL_PASSWD", env_dev["POSTGRESQL_PASSWD"])
+config.set_section_option("dev", "POSTGRESQL_HOSTNAME", env_dev["POSTGRESQL_HOSTNAME"])
+config.set_section_option("dev", "POSTGRESQL_DB_NAME", env_dev["POSTGRESQL_DB_NAME"])
+
+env_test = dotenv_values(".env.test")
+config.set_section_option("test", "POSTGRESQL_USER", env_test["POSTGRESQL_USER"])
+config.set_section_option("test", "POSTGRESQL_PASSWD", env_test["POSTGRESQL_PASSWD"])
+config.set_section_option("test", "POSTGRESQL_HOSTNAME", env_test["POSTGRESQL_HOSTNAME"])
+config.set_section_option("test", "POSTGRESQL_DB_NAME", env_test["POSTGRESQL_DB_NAME"])
+
+
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
-
-load_dotenv()
-section = config.config_ini_section
-config.set_section_option(section, "POSTGRESQL_USER", os.environ.get("POSTGRESQL_USER"))
-config.set_section_option(section, "POSTGRESQL_PASSWD", os.environ.get("POSTGRESQL_PASSWD"))
-config.set_section_option(section, "POSTGRESQL_HOSTNAME", os.environ.get("POSTGRESQL_HOSTNAME"))
-config.set_section_option(section, "POSTGRESQL_DB_NAME", os.environ.get("POSTGRESQL_DB_NAME"))
 
 
 def run_migrations_offline() -> None:
@@ -49,16 +75,28 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
-    context.configure(
-        url=url,
-        target_metadata=target_metadata,
-        literal_binds=True,
-        dialect_opts={"paramstyle": "named"},
-    )
+    # for the --sql use case, run migrations for each URL into
+    # individual files.
 
-    with context.begin_transaction():
-        context.run_migrations()
+    engines = {}
+    for name in re.split(r",\s*", db_names):
+        engines[name] = rec = {}
+        rec["url"] = context.config.get_section_option(name, "sqlalchemy.url")
+
+    for name, rec in engines.items():
+        logger.info("Migrating database %s" % name)
+        file_ = "%s.sql" % name
+        logger.info("Writing output to %s" % file_)
+        with open(file_, "w") as buffer:
+            context.configure(
+                url=rec["url"],
+                output_buffer=buffer,
+                target_metadata=target_metadata.get(name),
+                literal_binds=True,
+                dialect_opts={"paramstyle": "named"},
+            )
+            with context.begin_transaction():
+                context.run_migrations(engine_name=name)
 
 
 def run_migrations_online() -> None:
@@ -68,19 +106,52 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
 
-    with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
+    # for the direct-to-DB use case, start a transaction on all
+    # engines, then run all migrations, then commit all transactions.
+
+    engines = {}
+    for name in re.split(r",\s*", db_names):
+        engines[name] = rec = {}
+        rec["engine"] = engine_from_config(
+            context.config.get_section(name, {}),
+            prefix="sqlalchemy.",
+            poolclass=pool.NullPool,
         )
 
-        with context.begin_transaction():
-            context.run_migrations()
+    for name, rec in engines.items():
+        engine = rec["engine"]
+        rec["connection"] = conn = engine.connect()
+
+        if USE_TWOPHASE:
+            rec["transaction"] = conn.begin_twophase()
+        else:
+            rec["transaction"] = conn.begin()
+
+    try:
+        for name, rec in engines.items():
+            logger.info("Migrating database %s" % name)
+            context.configure(
+                connection=rec["connection"],
+                upgrade_token="%s_upgrades" % name,
+                downgrade_token="%s_downgrades" % name,
+                target_metadata=target_metadata.get(name),
+            )
+            context.run_migrations(engine_name=name)
+
+        if USE_TWOPHASE:
+            for rec in engines.values():
+                rec["transaction"].prepare()
+
+        for rec in engines.values():
+            rec["transaction"].commit()
+    except:
+        for rec in engines.values():
+            rec["transaction"].rollback()
+        raise
+    finally:
+        for rec in engines.values():
+            rec["connection"].close()
 
 
 if context.is_offline_mode():
