@@ -1,14 +1,4 @@
-import smtplib
-import ssl
+__all__ = ["send_email", "send_verification_email"]
 
-from flask import current_app
-
-
-def send_email(message):
-    context = ssl.create_default_context()
-    with smtplib.SMTP(current_app.config["SMTP_SERVER"], current_app.config["SMTP_PORT"]) as server:
-        server.ehlo()  # Can be omitted
-        server.starttls(context=context)
-        server.ehlo()  # Can be omitted
-        server.login(current_app.config["SENDER_EMAIL"], current_app.config["SENDER_PASSWD"])
-        server.send_message(message)
+from .sending import send_email
+from .verification import send_verification_email

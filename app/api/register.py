@@ -13,7 +13,7 @@ from sqlalchemy import select
 from werkzeug.security import generate_password_hash
 
 from app import db
-from app.email.verification import send_verification_email
+from app.email import send_verification_email
 from app.validation import validate_schema
 from models import User
 
