@@ -76,7 +76,7 @@ user_created = user_register_api.model('UserCreated', {
 @user_register_api.route('/')
 class Register(Resource):
     @user_register_api.expect(user_create)
-    @user_register_api.marshal_with(user_created, code=201)
+    @user_register_api.response(201, "Success", user_created)
     @user_register_api.response(409, 'Already Exists')
     @user_register_api.response(503, 'Email Service Down')
     @validate_schema(user_register_api, UserCreateSchema)
@@ -104,10 +104,9 @@ class Register(Resource):
         except EmailServiceError as e:
             db.Session.delete(user)
             db.Session.commit()
-            user_register_api.abort(503, "Email Service Down")
+            return {"message": "Email Service Down"}, 503, {"retry-after": "300"}
 
-
-        return user, 201
+        return user_register_api.marshal(user, user_created), 201
 
 
 @user_register_api.route('/activate/<token>/')

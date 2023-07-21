@@ -49,6 +49,7 @@ def test_register_email_service_down(app, client):
 
     assert resp.status_code == 503
     assert app.db.Session.scalar(select(User).where(User.email == "FiliNowak@test.com")) is None
+    assert resp.headers["retry-after"] == "300"
 
 
 def test_registration_valid(app, client):
