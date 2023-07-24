@@ -47,6 +47,12 @@ class Register(Resource):
             return {"message": "Email Service Down"}, 503, {"retry-after": "300"}
 
         return api_users.marshal(user, user_created), 201
+
+    @api_users.response(200, "Success",  [user_created])
+    def get(self):
+        users = db.Session().scalars(select(User)).all()
+
+        return [api_users.marshal(user, user_created) for user in users]
     
     
 @api_users.route('/activate/<token>/')
