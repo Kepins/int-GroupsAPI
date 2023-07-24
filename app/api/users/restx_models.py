@@ -16,3 +16,8 @@ user_created = api_users.model('UserCreated', {
     'last_name': fields.String,
     'email': fields.String,
 })
+
+user_patch = api_users.model('UserPatch', {
+    'first_name': fields.String,
+    'last_name': fields.String,
+})

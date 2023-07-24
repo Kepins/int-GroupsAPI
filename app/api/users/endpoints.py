@@ -6,9 +6,9 @@ from sqlalchemy import select
 from models import User
 from app import db
 from app.api.users.tokens import user_id_from_token, create_token
-from app.api.users.marshmellow_schemas import UserCreateSchema
+from app.api.users.marshmellow_schemas import UserCreateSchema, UserPatchSchema
 from app.api.users.namespace import api_users
-from app.api.users.restx_models import user_create, user_created
+from app.api.users.restx_models import user_create, user_created, user_patch
 from app.email import send_verification_email, EmailServiceError
 from app.validation import validate_schema
 
@@ -84,3 +84,22 @@ class Id(Resource):
         if not user:
             return {'message': 'Not found'}, 404
         return api_users.marshal(user, user_created)
+
+    @api_users.expect(user_patch)
+    @api_users.response(200, "Success", user_created)
+    @api_users.response(404, "Not found")
+    @validate_schema(api_users, UserPatchSchema)
+    def patch(self, id):
+        user_patch_schema = UserPatchSchema().load(api_users.payload)
+
+        user = db.Session.scalar(select(User).where(User.id == id))
+        if not user:
+            return {'message': 'Not found'}, 404
+
+        for key, value in user_patch_schema.items():
+            setattr(user, key, value)
+
+        db.Session.add(user)
+        db.Session.commit()
+
+        return api_users.marshal(user, user_created), 200

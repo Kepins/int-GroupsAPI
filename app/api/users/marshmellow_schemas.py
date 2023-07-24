@@ -21,3 +21,8 @@ class UserCreateSchema(Schema):
             raise ValidationError("Must contain at least one uppercase letter.")
         if not any(ch.isdigit() for ch in passwd):
             raise ValidationError("Must contain at least one digit.")
+
+
+class UserPatchSchema(Schema):
+    first_name = fields.Str(required=False, validate=validate.Length(1))
+    last_name = fields.Str(required=False, validate=validate.Length(1))
