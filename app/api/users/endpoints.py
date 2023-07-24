@@ -19,8 +19,8 @@ from app.validation import validate_schema
 class Register(Resource):
     @api_users.expect(user_create)
     @api_users.response(201, "Success", user_created)
-    @api_users.response(409, 'Already Exists')
-    @api_users.response(503, 'Email Service Down')
+    @api_users.response(409, "Already Exists")
+    @api_users.response(503, "Email Service Down")
     @validate_schema(api_users, UserCreateSchema)
     def post(self):
         user_schema = UserCreateSchema().load(api_users.payload)
@@ -59,7 +59,7 @@ class Register(Resource):
     
 @api_users.route('/activate/<token>/')
 class Activate(Resource):
-    @api_users.response(200, 'Success')
+    @api_users.response(200, "Success")
     @api_users.response(400, "Invalid Token")
     def get(self, token):
         user_id = user_id_from_token(token)
@@ -73,30 +73,30 @@ class Activate(Resource):
         db.Session.add(user)
         db.Session.commit()
 
-        return {'message': 'Success'}, 200
+        return {"message": "Success"}, 200
 
 
 @api_users.route('/<id>')
 class Id(Resource):
 
     @api_users.response(200, "Success", user_created)
-    @api_users.response(404, "Not found")
+    @api_users.response(404, "Not Found")
     def get(self, id):
         user = db.Session.scalar(select(User).where(User.id == id))
         if not user:
-            return {'message': 'Not found'}, 404
+            return {"message": "Not Found"}, 404
         return api_users.marshal(user, user_created)
 
     @api_users.expect(user_patch)
     @api_users.response(200, "Success", user_created)
-    @api_users.response(404, "Not found")
+    @api_users.response(404, "Not Found")
     @validate_schema(api_users, UserPatchSchema)
     def patch(self, id):
         user_patch_schema = UserPatchSchema().load(api_users.payload)
 
         user = db.Session.scalar(select(User).where(User.id == id))
         if not user:
-            return {'message': 'Not found'}, 404
+            return {"message": "Not Found"}, 404
 
         for key, value in user_patch_schema.items():
             setattr(user, key, value)
