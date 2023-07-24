@@ -17,4 +17,4 @@ def user_id_from_token(token):
     except BadSignature as bs:
         return None
 
-    return dic['id']
+    return dic["id"]

@@ -8,31 +8,55 @@ from models import User
 
 
 def test_registration_not_valid_not_json(app):
-    resp = app.test_client().post("/app/users/",
-                       data={"first_name": "Jacek", "last_name": "Placek",
-                             "email": "jacek@test.com", "password": "testPaswd1"},
-                       )
+    resp = app.test_client().post(
+        "/app/users/",
+        data={
+            "first_name": "Jacek",
+            "last_name": "Placek",
+            "email": "jacek@test.com",
+            "password": "testPaswd1",
+        },
+    )
     assert resp.status_code == 415  # UNSUPPORTED MEDIA TYPE
 
 
 def test_registration_not_valid_field_missing(app):
-    resp = app.test_client().post("/app/users/",
-                       data=json.dumps({"first_name": "Jacek", "email": "jacek@test.com", "password": "testPaswd1"}),
-                       content_type='application/json')
+    resp = app.test_client().post(
+        "/app/users/",
+        data=json.dumps(
+            {"first_name": "Jacek", "email": "jacek@test.com", "password": "testPaswd1"}
+        ),
+        content_type="application/json",
+    )
 
-    assert resp.text == '{"message": "{\'last_name\': [\'Missing data for required field.\']}"}\n'
+    assert (
+        resp.text
+        == "{\"message\": \"{'last_name': ['Missing data for required field.']}\"}\n"
+    )
     assert resp.status_code == 400  # INVALID REQUEST
 
 
 def test_registration_already_exists(app):
-    user = User(first_name="Filip", last_name="Nowak",
-                email="FiliNowak@test.com", pass_hash=generate_password_hash("testPaswd1"))
+    user = User(
+        first_name="Filip",
+        last_name="Nowak",
+        email="FiliNowak@test.com",
+        pass_hash=generate_password_hash("testPaswd1"),
+    )
     app.db.Session.add(user)
     app.db.Session.commit()
-    resp = app.test_client().post("/app/users/",
-                                  data=json.dumps({"first_name": "Flipek", "last_name": "Nowak",
-                                                   "email": "FiliNowak@test.com", "password": "testPaswd2"}),
-                                  content_type='application/json')
+    resp = app.test_client().post(
+        "/app/users/",
+        data=json.dumps(
+            {
+                "first_name": "Flipek",
+                "last_name": "Nowak",
+                "email": "FiliNowak@test.com",
+                "password": "testPaswd2",
+            }
+        ),
+        content_type="application/json",
+    )
 
     assert resp.status_code == 409
     assert resp.json["message"] == "Already Exists"
@@ -42,24 +66,47 @@ def test_register_email_service_down(app):
     app.config["SMTP_SERVER"] = ""
     app.config["SMTP_PORT"] = 0
 
-    resp = app.test_client().post("/app/users/",
-                                  data=json.dumps({"first_name": "Flipek", "last_name": "Nowak",
-                                                   "email": "FiliNowak@test.com", "password": "testPaswd2"}),
-                                  content_type='application/json')
+    resp = app.test_client().post(
+        "/app/users/",
+        data=json.dumps(
+            {
+                "first_name": "Flipek",
+                "last_name": "Nowak",
+                "email": "FiliNowak@test.com",
+                "password": "testPaswd2",
+            }
+        ),
+        content_type="application/json",
+    )
 
     assert resp.status_code == 503
-    assert app.db.Session.scalar(select(User).where(User.email == "FiliNowak@test.com")) is None
+    assert (
+        app.db.Session.scalar(select(User).where(User.email == "FiliNowak@test.com"))
+        is None
+    )
     assert resp.headers["retry-after"] == "300"
 
 
 def test_registration_valid(app):
-    with patch("app.api.users.endpoints.send_verification_email", MagicMock()) as mail_mock:
-        resp = app.test_client().post("/app/users/",
-                                      data=json.dumps({"first_name": "Jacek", "last_name": "Placek",
-                                                       "email": "jacek@test.com", "password": "testPaswd1"}),
-                                      content_type='application/json')
+    with patch(
+        "app.api.users.endpoints.send_verification_email", MagicMock()
+    ) as mail_mock:
+        resp = app.test_client().post(
+            "/app/users/",
+            data=json.dumps(
+                {
+                    "first_name": "Jacek",
+                    "last_name": "Placek",
+                    "email": "jacek@test.com",
+                    "password": "testPaswd1",
+                }
+            ),
+            content_type="application/json",
+        )
 
-        db_user = app.db.Session.scalar(select(User).where(User.email == "jacek@test.com"))
+        db_user = app.db.Session.scalar(
+            select(User).where(User.email == "jacek@test.com")
+        )
         app.db.Session.remove()
 
         # Response
@@ -83,7 +130,9 @@ def test_registration_valid(app):
         url_activate = mail_mock.call_args[0][1]
         resp_activate = app.test_client().get(url_activate)
 
-        db_user = app.db.Session.scalar(select(User).where(User.email == "jacek@test.com"))
+        db_user = app.db.Session.scalar(
+            select(User).where(User.email == "jacek@test.com")
+        )
 
         assert resp_activate.status_code == 200
         assert db_user.is_activated

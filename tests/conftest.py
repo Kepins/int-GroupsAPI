@@ -12,8 +12,9 @@ from models import User, Group, Event, Base
 def db():
     env_test = dotenv_values(".env.test")
 
-    class TestApp():
+    class TestApp:
         config = {}
+
     app = TestApp()
     app.config = {
         "POSTGRES_USER": env_test["POSTGRESQL_USER"],
@@ -41,12 +42,24 @@ def app(db):
 
 @pytest.fixture
 def app_with_data(app):
-    user1 = User(first_name="Filip", last_name="Nowak",
-                 email="FiliNowak@test.com", pass_hash=generate_password_hash("testPaswd11"))
-    user2 = User(first_name="Adam", last_name="Małysz",
-                 email="adam.malysz@test.com", pass_hash=generate_password_hash("testPaswd12"))
-    user3 = User(first_name="Julian", last_name="Nowak",
-                 email="julian.nowak@test.com", pass_hash=generate_password_hash("testPaswd13"))
+    user1 = User(
+        first_name="Filip",
+        last_name="Nowak",
+        email="FiliNowak@test.com",
+        pass_hash=generate_password_hash("testPaswd11"),
+    )
+    user2 = User(
+        first_name="Adam",
+        last_name="Małysz",
+        email="adam.malysz@test.com",
+        pass_hash=generate_password_hash("testPaswd12"),
+    )
+    user3 = User(
+        first_name="Julian",
+        last_name="Nowak",
+        email="julian.nowak@test.com",
+        pass_hash=generate_password_hash("testPaswd13"),
+    )
 
     app.db.Session.add_all([user1, user2, user3])
     app.db.Session.commit()

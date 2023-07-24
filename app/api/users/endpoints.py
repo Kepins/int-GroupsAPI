@@ -15,7 +15,7 @@ from app.email import send_verification_email, EmailServiceError
 from app.validation import validate_schema
 
 
-@api_users.route('/')
+@api_users.route("/")
 class Users(Resource):
     @api_users.expect(user_create)
     @api_users.response(201, "Success", user_created)
@@ -26,21 +26,24 @@ class Users(Resource):
         user_schema = UserCreateSchema().load(api_users.payload)
 
         # Query to check if user already exists
-        user = db.Session.scalar(select(User).where(User.email == user_schema['email']))
+        user = db.Session.scalar(select(User).where(User.email == user_schema["email"]))
 
         if user:
             api_users.abort(409, "Already Exists")
 
-        user = User(first_name=user_schema['first_name'],
-                    last_name=user_schema['last_name'],
-                    is_activated=False,
-                    pass_hash=generate_password_hash(user_schema['password']),
-                    email=user_schema['email'],
-                    )
+        user = User(
+            first_name=user_schema["first_name"],
+            last_name=user_schema["last_name"],
+            is_activated=False,
+            pass_hash=generate_password_hash(user_schema["password"]),
+            email=user_schema["email"],
+        )
 
         db.Session.add(user)
         db.Session.commit()
-        verification_url = url_for("api_bp.app/users_users_activate", _external=True, token=create_token(user))
+        verification_url = url_for(
+            "api_bp.app/users_users_activate", _external=True, token=create_token(user)
+        )
         try:
             send_verification_email(user.email, verification_url)
         except EmailServiceError as e:
@@ -50,14 +53,14 @@ class Users(Resource):
 
         return api_users.marshal(user, user_created), 201
 
-    @api_users.response(200, "Success",  [user_created])
+    @api_users.response(200, "Success", [user_created])
     def get(self):
         users = db.Session().scalars(select(User)).all()
 
         return [api_users.marshal(user, user_created) for user in users]
-    
-    
-@api_users.route('/activate/<token>/')
+
+
+@api_users.route("/activate/<token>/")
 class UsersActivate(Resource):
     @api_users.response(200, "Success")
     @api_users.response(400, "Invalid Token")
@@ -76,9 +79,8 @@ class UsersActivate(Resource):
         return {"message": "Success"}, 200
 
 
-@api_users.route('/<id>')
+@api_users.route("/<id>")
 class UsersByID(Resource):
-
     @api_users.response(200, "Success", user_created)
     @api_users.response(404, "Not Found")
     def get(self, id):

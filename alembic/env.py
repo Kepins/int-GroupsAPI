@@ -21,6 +21,7 @@ if config.config_file_name is not None:
 # add your model's MetaData object here
 # for 'autogenerate' support
 from models import Base
+
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
@@ -30,10 +31,14 @@ target_metadata = Base.metadata
 
 env_values = dotenv_values(".env")
 section = config.config_ini_section
-config.set_section_option(section, "POSTGRESQL_USER", env_values['POSTGRESQL_USER'])
-config.set_section_option(section, "POSTGRESQL_PASSWD", env_values['POSTGRESQL_PASSWD'])
-config.set_section_option(section, "POSTGRESQL_HOSTNAME", env_values['POSTGRESQL_HOSTNAME'])
-config.set_section_option(section, "POSTGRESQL_DB_NAME", env_values['POSTGRESQL_DB_NAME'])
+config.set_section_option(section, "POSTGRESQL_USER", env_values["POSTGRESQL_USER"])
+config.set_section_option(section, "POSTGRESQL_PASSWD", env_values["POSTGRESQL_PASSWD"])
+config.set_section_option(
+    section, "POSTGRESQL_HOSTNAME", env_values["POSTGRESQL_HOSTNAME"]
+)
+config.set_section_option(
+    section, "POSTGRESQL_DB_NAME", env_values["POSTGRESQL_DB_NAME"]
+)
 
 
 def run_migrations_offline() -> None:
@@ -74,9 +79,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()

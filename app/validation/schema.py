@@ -15,5 +15,7 @@ def validate_schema(api: Namespace, schema: type[Schema]):
             except ValidationError as err:
                 api.abort(400, err.messages)
             return func(*args, **kwargs)
+
         return wrapper_validate
+
     return decorator_validate
