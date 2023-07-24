@@ -53,7 +53,7 @@ def test_register_email_service_down(app, client):
 
 
 def test_registration_valid(app, client):
-    with patch("app.api.register.send_verification_email", MagicMock()) as mail_mock:
+    with patch("app.api.users.endpoints.send_verification_email", MagicMock()) as mail_mock:
         resp = client.post("/app/users/",
                            data=json.dumps({"first_name": "Jacek", "last_name": "Placek",
                                  "email": "jacek@test.com", "password": "testPaswd1"}),
