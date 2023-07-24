@@ -36,6 +36,8 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(320), unique=True)
     pass_hash: Mapped[str] = mapped_column(String(200))
     is_activated: Mapped[bool] = mapped_column(default=False)
+    is_deleted: Mapped[bool] = mapped_column(default=False)
+    deletion_date: Mapped[Optional[datetime.datetime]] = mapped_column(default=None)
 
     groups_admin: Mapped[List["Group"]] = relationship(back_populates="admin",
                                                        primaryjoin=lambda: User.id == Group.admin_id
@@ -48,6 +50,8 @@ class User(Base):
                 f"last_name={self.last_name!r}, " \
                 f"email={self.email!r}, " \
                 f"is_activated={self.is_activated!r}, " \
+                f"is_deleted={self.is_deleted!r}, " \
+                f"deletion_date={self.deletion_date!r}, " \
                 f"creation_date={self.creation_date!r}, "\
                 f"modification_date={self.modification_date!r}" \
                f")"

@@ -1,3 +1,5 @@
+import datetime
+
 from flask import url_for
 from flask_restx import Resource
 from werkzeug.security import generate_password_hash
@@ -103,3 +105,16 @@ class Id(Resource):
         db.Session.commit()
 
         return api_users.marshal(user, user_created), 200
+
+    @api_users.response(204, "No Content")
+    def delete(self, id):
+        user = db.Session.scalar(select(User).where(User.id == id))
+        if not user or user.is_deleted:
+            return None, 204
+
+        user.is_deleted = True
+        user.deletion_date = datetime.datetime.utcnow()
+        db.Session.add(user)
+        db.Session.commit()
+
+        return None, 204
