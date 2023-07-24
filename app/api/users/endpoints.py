@@ -72,3 +72,15 @@ class Activate(Resource):
         db.Session.commit()
 
         return {'message': 'Success'}, 200
+
+
+@api_users.route('/<id>')
+class Id(Resource):
+
+    @api_users.response(200, "Success", user_created)
+    @api_users.response(404, "Not found")
+    def get(self, id):
+        user = db.Session.scalar(select(User).where(User.id == id))
+        if not user:
+            return {'message': 'Not found'}, 404
+        return api_users.marshal(user, user_created)
