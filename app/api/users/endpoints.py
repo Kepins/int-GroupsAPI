@@ -16,7 +16,7 @@ from app.validation import validate_schema
 
 
 @api_users.route('/')
-class Register(Resource):
+class Users(Resource):
     @api_users.expect(user_create)
     @api_users.response(201, "Success", user_created)
     @api_users.response(409, "Already Exists")
@@ -40,7 +40,7 @@ class Register(Resource):
 
         db.Session.add(user)
         db.Session.commit()
-        verification_url = url_for("api_bp.app/users_activate", _external=True, token=create_token(user))
+        verification_url = url_for("api_bp.app/users_users_activate", _external=True, token=create_token(user))
         try:
             send_verification_email(user.email, verification_url)
         except EmailServiceError as e:
@@ -58,7 +58,7 @@ class Register(Resource):
     
     
 @api_users.route('/activate/<token>/')
-class Activate(Resource):
+class UsersActivate(Resource):
     @api_users.response(200, "Success")
     @api_users.response(400, "Invalid Token")
     def get(self, token):
@@ -77,7 +77,7 @@ class Activate(Resource):
 
 
 @api_users.route('/<id>')
-class Id(Resource):
+class UsersByID(Resource):
 
     @api_users.response(200, "Success", user_created)
     @api_users.response(404, "Not Found")
