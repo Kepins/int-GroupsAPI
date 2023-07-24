@@ -1,8 +1,7 @@
 import functools
 
 from flask_restx import Namespace
-from marshmallow import Schema
-from marshmallow import ValidationError
+from marshmallow import Schema, ValidationError
 
 
 def validate_schema(api: Namespace, schema: type[Schema]):

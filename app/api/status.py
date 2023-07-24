@@ -1,5 +1,4 @@
-from flask_restx import Resource
-from flask_restx import Namespace
+from flask_restx import Resource, Namespace
 
 
 api_status = Namespace('api/status', description='Check status of API')

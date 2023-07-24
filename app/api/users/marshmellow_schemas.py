@@ -1,8 +1,4 @@
-from marshmallow import Schema
-from marshmallow import fields
-from marshmallow import validate
-from marshmallow import validates
-from marshmallow import ValidationError
+from marshmallow import Schema, fields, validate, validates, ValidationError
 
 
 class UserCreateSchema(Schema):

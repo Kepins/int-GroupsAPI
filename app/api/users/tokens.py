@@ -1,6 +1,5 @@
 from flask import current_app
-from itsdangerous import URLSafeSerializer
-from itsdangerous import BadSignature
+from itsdangerous import URLSafeSerializer, BadSignature
 
 
 def create_token(user):

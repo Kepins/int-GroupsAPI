@@ -6,9 +6,7 @@ from werkzeug.security import generate_password_hash
 
 from app import create_app
 from app.db import AlchemyDatabase
-from models import User
-from models import Group
-from models import Event
+from models import User, Group, Event
 
 
 @pytest.fixture
