@@ -1,12 +1,11 @@
 import pytest
 
 from dotenv import dotenv_values
-from sqlalchemy import delete, text
 from werkzeug.security import generate_password_hash
 
 from app import create_app
 from app.db import AlchemyDatabase
-from models import User, Group, Event
+from models import User, Group, Event, Base
 
 
 @pytest.fixture
@@ -25,25 +24,12 @@ def db():
     db = AlchemyDatabase()
     db.init_app(app)
 
-    db.Session.execute(delete(Event))
-    db.Session.execute(delete(Group))
-    db.Session.execute(delete(User))
-    db.Session.execute(text("ALTER SEQUENCE user_id_seq RESTART WITH 1"))
-    db.Session.execute(text("ALTER SEQUENCE group_id_seq RESTART WITH 1"))
-    db.Session.execute(text("ALTER SEQUENCE event_id_seq RESTART WITH 1"))
-    db.Session.commit()
+    Base.metadata.create_all(db.engine)
 
     yield db
 
-    db.Session.execute(delete(User))
-    db.Session.execute(delete(Group))
-    db.Session.execute(delete(Event))
-    db.Session.execute(text("ALTER SEQUENCE user_id_seq RESTART WITH 1"))
-    db.Session.execute(text("ALTER SEQUENCE group_id_seq RESTART WITH 1"))
-    db.Session.execute(text("ALTER SEQUENCE event_id_seq RESTART WITH 1"))
-    db.Session.commit()
-
     db.Session.remove()
+    Base.metadata.drop_all(db.engine)
 
 
 @pytest.fixture

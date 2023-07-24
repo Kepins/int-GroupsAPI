@@ -84,7 +84,6 @@ def test_registration_valid(app):
         resp_activate = app.test_client().get(url_activate)
 
         db_user = app.db.Session.scalar(select(User).where(User.email == "jacek@test.com"))
-        app.db.Session.remove()
 
         assert resp_activate.status_code == 200
         assert db_user.is_activated
