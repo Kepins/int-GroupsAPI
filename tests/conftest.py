@@ -1,3 +1,6 @@
+import datetime
+
+import jwt
 import pytest
 
 from dotenv import dotenv_values
@@ -65,3 +68,11 @@ def app_with_data(app):
     app.db.Session.commit()
 
     yield app
+
+
+def valid_auth_header(id, secret):
+    return "Bearer " + jwt.encode(
+        {"id": id, "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)},
+        secret,
+        algorithm="HS256",
+    )
