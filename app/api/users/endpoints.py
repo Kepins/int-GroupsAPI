@@ -2,15 +2,19 @@ import datetime
 
 from flask import url_for
 from flask_restx import Resource
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import select
 
 from models import User
 from app import db
-from app.api.users.tokens import user_id_from_token, create_token
-from app.api.users.marshmellow_schemas import UserCreateSchema, UserPatchSchema
+from app.api.users.itsdangerous_tokens import user_id_from_token, create_token
+from app.api.users.marshmellow_schemas import (
+    UserCreateSchema,
+    UserPatchSchema,
+    UserLoginSchema,
+)
 from app.api.users.namespace import api_users
-from app.api.users.restx_models import user_create, user_created, user_patch
+from app.api.users.restx_models import user_create, user_created, user_patch, user_login
 from app.email import send_verification_email, EmailServiceError
 from app.validation import validate_schema
 
@@ -120,3 +124,21 @@ class UsersByID(Resource):
         db.Session.commit()
 
         return None, 204
+
+
+@api_users.route("/login")
+class Login(Resource):
+    @api_users.expect(user_login)
+    @api_users.response(200, "Success")
+    @api_users.response(401, "Unauthorized")
+    @validate_schema(api_users, UserLoginSchema)
+    def post(self):
+        user_login_schema = UserLoginSchema().load(api_users.payload)
+
+        user_db = db.Session.scalar(select(User).where(User.email == user_login_schema["email"]))
+
+        if not user_db or not check_password_hash(user_db.pass_hash, user_login_schema["password"]):
+            # Unauthorized
+            return None, 401
+
+        return None, 200

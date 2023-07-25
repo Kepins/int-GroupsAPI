@@ -30,3 +30,11 @@ user_created = api_users.inherit(
 )
 
 user_patch = api_users.inherit("UserPatch", user_names, {})
+
+user_login = api_users.model(
+    "UserLogin",
+    {
+        "email": fields.String,
+        "password": fields.String,
+    },
+)
