@@ -16,7 +16,8 @@ from app.api.users.marshmellow_schemas import (
 from app.api.users.namespace import api_users
 from app.api.users.restx_models import user_create, user_created, user_patch, user_login
 from app.email import send_verification_email, EmailServiceError
-from app.validation import validate_schema
+from app.validation import validate_schema, validate_jwt
+from app.api.users.jwt_tokens import jwt_token
 
 
 @api_users.route("/")
@@ -58,7 +59,8 @@ class Users(Resource):
         return api_users.marshal(user, user_created), 201
 
     @api_users.response(200, "Success", [user_created])
-    def get(self):
+    @validate_jwt(api_users)
+    def get(self, jwtoken_decoded):
         users = db.Session().scalars(select(User)).all()
 
         return [api_users.marshal(user, user_created) for user in users]
@@ -87,7 +89,8 @@ class UsersActivate(Resource):
 class UsersByID(Resource):
     @api_users.response(200, "Success", user_created)
     @api_users.response(404, "Not Found")
-    def get(self, id):
+    @validate_jwt(api_users)
+    def get(self, id, jwtoken_decoded):
         user = db.Session.scalar(select(User).where(User.id == id))
         if not user:
             return {"message": "Not Found"}, 404
@@ -97,7 +100,8 @@ class UsersByID(Resource):
     @api_users.response(200, "Success", user_created)
     @api_users.response(404, "Not Found")
     @validate_schema(api_users, UserPatchSchema)
-    def patch(self, id):
+    @validate_jwt(api_users)
+    def patch(self, id, jwtoken_decoded):
         user_patch_schema = UserPatchSchema().load(api_users.payload)
 
         user = db.Session.scalar(select(User).where(User.id == id))
@@ -113,7 +117,8 @@ class UsersByID(Resource):
         return api_users.marshal(user, user_created), 200
 
     @api_users.response(204, "No Content")
-    def delete(self, id):
+    @validate_jwt(api_users)
+    def delete(self, id, jwtoken_decoded):
         user = db.Session.scalar(select(User).where(User.id == id))
         if not user or user.is_deleted:
             return None, 204
@@ -135,10 +140,15 @@ class Login(Resource):
     def post(self):
         user_login_schema = UserLoginSchema().load(api_users.payload)
 
-        user_db = db.Session.scalar(select(User).where(User.email == user_login_schema["email"]))
+        user_db = db.Session.scalar(
+            select(User).where(User.email == user_login_schema["email"])
+        )
 
-        if not user_db or not check_password_hash(user_db.pass_hash, user_login_schema["password"]):
-            # Unauthorized
-            return None, 401
+        if not user_db:
+            return {"message": "No Matching User"}, 401
+        if user_db.is_deleted:
+            return {"message": "User Deleted"}, 401
+        if not check_password_hash(user_db.pass_hash, user_login_schema["password"]):
+            return {"message": "Invalid Password"}, 401
 
-        return None, 200
+        return jwt_token(user_db), 200

@@ -6,10 +6,21 @@ from .users import api_users as api_users
 
 api_bp = Blueprint("api_bp", __name__)
 
+authorizations = {
+    "apikey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Authorization",
+        "description": "Type in the *'Value'* input box below: **'Bearer &lt;JWT&gt;'**, where JWT is the token",
+    }
+}
+
 api = Api(
     api_bp,
     title="API",
     version="0.1",
+    authorizations=authorizations,
+    security="apikey",
 )
 
 api.add_namespace(api_status)
