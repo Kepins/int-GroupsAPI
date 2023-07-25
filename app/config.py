@@ -19,3 +19,6 @@ class Config:
 
         self.SECRET_DAN = os.environ.get("SECRET_DAN")
         self.SECRET_JWT = os.environ.get("SECRET_JWT")
+
+        # Expiration time of JWT in seconds
+        self.EXPIRATION_JWT = int(os.environ.get("EXPIRATION_JWT"))
