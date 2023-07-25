@@ -76,3 +76,11 @@ def valid_auth_header(id, secret):
         secret,
         algorithm="HS256",
     )
+
+
+def expired_auth_header(id, secret):
+    return "Bearer " + jwt.encode(
+        {"id": id, "exp": datetime.datetime.utcnow() - datetime.timedelta(minutes=2)},
+        secret,
+        algorithm="HS256",
+    )
