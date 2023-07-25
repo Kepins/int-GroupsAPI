@@ -1,8 +1,7 @@
 import functools
 
 from flask_restx import Namespace
-from marshmallow import Schema
-from marshmallow import ValidationError
+from marshmallow import Schema, ValidationError
 
 
 def validate_schema(api: Namespace, schema: type[Schema]):
@@ -16,5 +15,7 @@ def validate_schema(api: Namespace, schema: type[Schema]):
             except ValidationError as err:
                 api.abort(400, err.messages)
             return func(*args, **kwargs)
+
         return wrapper_validate
+
     return decorator_validate

@@ -15,6 +15,7 @@ def create_app(env=".env"):
     db.init_app(app)
 
     from app.api import api_bp
+
     app.register_blueprint(api_bp)
 
     @app.after_request
