@@ -31,6 +31,23 @@ def test_patch_no_auth(app_with_data):
     assert user.last_name == "Małysz"
 
 
+def test_patch_random_auth(app_with_data):
+    resp = app_with_data.test_client().patch(
+        "/app/users/2",
+        data=json.dumps({"last_name": "Mały"}),
+        content_type="application/json",
+        headers={"Authorization": "mdksa.sdaka.asdaf"},
+    )
+
+    # response
+    assert resp.status_code == 401
+    assert resp.json["message"] == "Invalid Token"
+    # db
+    user = app_with_data.db.Session.scalar(select(User).where(User.id == 2))
+    assert user.first_name == "Adam"
+    assert user.last_name == "Małysz"
+
+
 def test_get_expired(app):
     resp = app.test_client().get(
         "/app/users/",
