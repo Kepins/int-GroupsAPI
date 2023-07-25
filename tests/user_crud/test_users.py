@@ -63,7 +63,7 @@ def test_patch_all_fields(app_with_data):
         data=json.dumps({"first_name": "Adaś", "last_name": "Mały"}),
         content_type="application/json",
         headers={
-            "Authorization": valid_auth_header(1, app_with_data.config["SECRET_JWT"])
+            "Authorization": valid_auth_header(2, app_with_data.config["SECRET_JWT"])
         },
     )
 
@@ -85,7 +85,7 @@ def test_patch_one_field(app_with_data):
         data=json.dumps({"last_name": "Mały"}),
         content_type="application/json",
         headers={
-            "Authorization": valid_auth_header(1, app_with_data.config["SECRET_JWT"])
+            "Authorization": valid_auth_header(2, app_with_data.config["SECRET_JWT"])
         },
     )
 
@@ -107,7 +107,7 @@ def test_patch_wrong_field(app_with_data):
         data=json.dumps({"frst_name": "Jacek", "last_name": "Mały"}),
         content_type="application/json",
         headers={
-            "Authorization": valid_auth_header(1, app_with_data.config["SECRET_JWT"])
+            "Authorization": valid_auth_header(2, app_with_data.config["SECRET_JWT"])
         },
     )
 
@@ -122,7 +122,7 @@ def test_delete_not_exists(app_with_data):
     resp = app_with_data.test_client().delete(
         "/app/users/5",
         headers={
-            "Authorization": valid_auth_header(1, app_with_data.config["SECRET_JWT"])
+            "Authorization": valid_auth_header(5, app_with_data.config["SECRET_JWT"])
         },
     )
 
@@ -134,7 +134,7 @@ def test_delete_exists(app_with_data):
     resp = app_with_data.test_client().delete(
         "/app/users/2",
         headers={
-            "Authorization": valid_auth_header(1, app_with_data.config["SECRET_JWT"])
+            "Authorization": valid_auth_header(2, app_with_data.config["SECRET_JWT"])
         },
     )
 

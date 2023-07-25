@@ -38,3 +38,19 @@ def validate_jwt(api: Namespace):
         return wrapper_validate
 
     return decorator_validate
+
+
+def validate_jwt_id_matches_id(api: Namespace):
+    def decorator_validate(func):
+        @api.response(401, "Unauthorized")
+        @functools.wraps(func)
+        def wrapper_validate(*args, **kwargs):
+            id = kwargs.get("id")
+            jwtoken_decoded = kwargs.get("jwtoken_decoded")
+            if id != str(jwtoken_decoded["id"]):
+                api.abort(401, "Id Not Matching")
+            return func(*args, **kwargs)
+
+        return wrapper_validate
+
+    return decorator_validate

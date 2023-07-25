@@ -16,7 +16,7 @@ from app.api.users.marshmellow_schemas import (
 from app.api.users.namespace import api_users
 from app.api.users.restx_models import user_create, user_created, user_patch, user_login
 from app.email import send_verification_email, EmailServiceError
-from app.validation import validate_schema, validate_jwt
+from app.validation import validate_schema, validate_jwt, validate_jwt_id_matches_id
 from app.api.users.jwt_tokens import jwt_token
 
 
@@ -101,6 +101,7 @@ class UsersByID(Resource):
     @api_users.response(404, "Not Found")
     @validate_schema(api_users, UserPatchSchema)
     @validate_jwt(api_users)
+    @validate_jwt_id_matches_id(api_users)
     def patch(self, id, jwtoken_decoded):
         user_patch_schema = UserPatchSchema().load(api_users.payload)
 
@@ -118,6 +119,7 @@ class UsersByID(Resource):
 
     @api_users.response(204, "No Content")
     @validate_jwt(api_users)
+    @validate_jwt_id_matches_id(api_users)
     def delete(self, id, jwtoken_decoded):
         user = db.Session.scalar(select(User).where(User.id == id))
         if not user or user.is_deleted:
