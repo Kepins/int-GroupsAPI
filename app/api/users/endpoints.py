@@ -27,21 +27,21 @@ class Users(Resource):
     @api_users.response(409, "Already Exists")
     @api_users.response(503, "Email Service Down")
     @validate_schema(api_users, UserCreateSchema)
-    def post(self):
-        user_schema = UserCreateSchema().load(api_users.payload)
-
+    def post(self, validated_schema):
         # Query to check if user already exists
-        user = db.Session.scalar(select(User).where(User.email == user_schema["email"]))
+        user = db.Session.scalar(
+            select(User).where(User.email == validated_schema["email"])
+        )
 
         if user:
             api_users.abort(409, "Already Exists")
 
         user = User(
-            first_name=user_schema["first_name"],
-            last_name=user_schema["last_name"],
+            first_name=validated_schema["first_name"],
+            last_name=validated_schema["last_name"],
             is_activated=False,
-            pass_hash=generate_password_hash(user_schema["password"]),
-            email=user_schema["email"],
+            pass_hash=generate_password_hash(validated_schema["password"]),
+            email=validated_schema["email"],
         )
 
         db.Session.add(user)
@@ -102,14 +102,12 @@ class UsersByID(Resource):
     @validate_schema(api_users, UserPatchSchema)
     @validate_jwt(api_users)
     @validate_jwt_id_matches_id(api_users)
-    def patch(self, id, jwtoken_decoded):
-        user_patch_schema = UserPatchSchema().load(api_users.payload)
-
+    def patch(self, validated_schema, id, jwtoken_decoded):
         user = db.Session.scalar(select(User).where(User.id == id))
         if not user:
             return {"message": "Not Found"}, 404
 
-        for key, value in user_patch_schema.items():
+        for key, value in validated_schema.items():
             setattr(user, key, value)
 
         db.Session.add(user)
@@ -139,18 +137,16 @@ class Login(Resource):
     @api_users.response(200, "Success")
     @api_users.response(401, "Unauthorized")
     @validate_schema(api_users, UserLoginSchema)
-    def post(self):
-        user_login_schema = UserLoginSchema().load(api_users.payload)
-
+    def post(self, validated_schema):
         user_db = db.Session.scalar(
-            select(User).where(User.email == user_login_schema["email"])
+            select(User).where(User.email == validated_schema["email"])
         )
 
         if not user_db:
             return {"message": "No Matching User"}, 401
         if user_db.is_deleted:
             return {"message": "User Deleted"}, 401
-        if not check_password_hash(user_db.pass_hash, user_login_schema["password"]):
+        if not check_password_hash(user_db.pass_hash, validated_schema["password"]):
             return {"message": "Invalid Password"}, 401
 
         return jwt_token(user_db), 200

@@ -11,10 +11,10 @@ def validate_schema(api: Namespace, schema: type[Schema]):
         def wrapper_validate(*args, **kwargs):
             payload = api.payload
             try:
-                schema().load(payload)
+                loaded_schema = schema().load(payload)
             except ValidationError as err:
                 api.abort(400, err.messages)
-            return func(*args, **kwargs)
+            return func(*args, **kwargs, validated_schema=loaded_schema)
 
         return wrapper_validate
 
