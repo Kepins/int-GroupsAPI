@@ -17,4 +17,5 @@ class Config:
         self.SENDER_EMAIL = os.environ.get("SMTP_SENDER_EMAIL")
         self.SENDER_PASSWD = os.environ.get("SMTP_SENDER_PASSWD")
 
-        self.SECRET_KEY = os.environ.get("SECRET_KEY")
+        self.SECRET_DAN = os.environ.get("SECRET_DAN")
+        self.SECRET_JWT = os.environ.get("SECRET_JWT")
