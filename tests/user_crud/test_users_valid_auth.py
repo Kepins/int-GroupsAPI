@@ -21,7 +21,7 @@ def test_get_exists(app_with_data):
     assert resp.json[1]["email"] == "adam.malysz@test.com"
     assert resp.json[1]["first_name"] == "Adam"
     assert resp.json[1]["last_name"] == "Małysz"
-    assert len(resp.json) == 3
+    assert len(resp.json) == 4
 
 
 def test_get_id_not_exist(app_with_data):

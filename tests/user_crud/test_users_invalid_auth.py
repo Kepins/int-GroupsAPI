@@ -152,3 +152,13 @@ def test_patch_expired_different_id(app_with_data):
     user = app_with_data.db.Session.scalar(select(User).where(User.id == 2))
     assert user.first_name == "Adam"
     assert user.last_name == "Małysz"
+
+
+def test_get_user_deleted(app):
+    resp = app.test_client().get(
+        "/app/users/",
+        headers={"Authorization": valid_auth_header(4, app.config["SECRET_KEY_JWT"])},
+    )
+
+    assert resp.status_code == 401
+    assert resp.json["message"] == "Token Not Matching User"

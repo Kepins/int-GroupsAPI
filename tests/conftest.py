@@ -63,8 +63,16 @@ def app_with_data(app):
         email="julian.nowak@test.com",
         pass_hash=generate_password_hash("testPaswd13"),
     )
+    user4 = User(
+        first_name="Janusz",
+        last_name="Kowal",
+        email="kowal.janek@test.com",
+        pass_hash=generate_password_hash("testPaswd14"),
+    )
+    user4.is_deleted = True
+    user4.deletion_date = datetime.datetime.utcnow()
 
-    app.db.Session.add_all([user1, user2, user3])
+    app.db.Session.add_all([user1, user2, user3, user4])
     app.db.Session.commit()
 
     yield app
