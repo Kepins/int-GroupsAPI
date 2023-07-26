@@ -38,8 +38,13 @@ class Groups(Resource):
 
 @api_groups.route("/<id>")
 class GroupsByID(Resource):
+    @api_groups.response(200, "Success", group_created)
+    @api_groups.response(404, "Not found")
     def get(self, id):
-        pass
+        group = db.Session.scalar(select(Group).where(Group.id == id))
+        if not group:
+            return {"message": "Not Found"}, 404
+        return api_groups.marshal(group, group_created)
 
     def put(self, id):
         pass
