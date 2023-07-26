@@ -34,7 +34,7 @@ def test_login_invalid_email(app_with_data):
         content_type="application/json",
     )
 
-    assert resp.status_code == 401
+    assert resp.status_code == 404
     assert resp.json["message"] == "No Matching User"
 
 
@@ -53,5 +53,5 @@ def test_login_deleted(app_with_data):
         content_type="application/json",
     )
 
-    assert resp.status_code == 401
+    assert resp.status_code == 404
     assert resp.json["message"] == "User Deleted"

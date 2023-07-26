@@ -136,6 +136,7 @@ class Login(Resource):
     @api_users.expect(user_login)
     @api_users.response(200, "Success")
     @api_users.response(401, "Unauthorized")
+    @api_users.response(404, "User Not Found")
     @validate_schema(api_users, UserLoginSchema)
     def post(self, validated_schema):
         user_db = db.Session.scalar(
@@ -143,9 +144,9 @@ class Login(Resource):
         )
 
         if not user_db:
-            return {"message": "No Matching User"}, 401
+            return {"message": "No Matching User"}, 404
         if user_db.is_deleted:
-            return {"message": "User Deleted"}, 401
+            return {"message": "User Deleted"}, 404
         if not check_password_hash(user_db.pass_hash, validated_schema["password"]):
             return {"message": "Invalid Password"}, 401
 
