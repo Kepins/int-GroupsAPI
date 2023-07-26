@@ -64,7 +64,7 @@ class GroupsByID(Resource):
             return {"message": "Not Found"}, 404
 
         if group.admin_id != jwtoken_decoded["id"]:
-            return {"message:": "Forbidden"}, 403
+            return {"message": "Forbidden"}, 403
 
         if not check_user_exists(validated_schema["admin_id"]):
             return {"message": "New Admin Not Found"}, 409
@@ -91,7 +91,7 @@ class GroupsByID(Resource):
             return {"message": "Not Found"}, 404
 
         if group.admin_id != jwtoken_decoded["id"]:
-            return {"message:": "Forbidden"}, 403
+            return {"message": "Forbidden"}, 403
 
         if "admin_id" in validated_schema and not check_user_exists(
             validated_schema["admin_id"]
@@ -115,7 +115,7 @@ class GroupsByID(Resource):
             return None, 204
 
         if group.admin_id != jwtoken_decoded["id"]:
-            return {"message:": "Forbidden"}, 403
+            return {"message": "Forbidden"}, 403
 
         db.Session.delete(group)
         db.Session.commit()
