@@ -19,7 +19,7 @@ def validate_jwt(api: Namespace):
             if re.compile(
                 "^Bearer [a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+$"
             ).match(auth_header):
-                jwtoken_encoded = auth_header[7:]
+                jwtoken_encoded = auth_header.split(" ")[1]
             else:
                 jwtoken_encoded = ""
             try:
