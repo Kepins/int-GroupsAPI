@@ -7,6 +7,18 @@ from flask_restx import Namespace
 
 import re
 
+from sqlalchemy import select
+
+from app import db
+from models import User
+
+
+def __validate_user_not_deleted(id):
+    user = db.Session.scalar(select(User).where(User.id == id))
+    if not user or user.is_deleted:
+        return False
+    return True
+
 
 def validate_jwt(api: Namespace):
     def decorator_validate(func):
@@ -32,6 +44,9 @@ def validate_jwt(api: Namespace):
                 api.abort(401, "Expired Token")
             except jwt.exceptions.InvalidTokenError:
                 api.abort(401, "Invalid Token")
+
+            if not __validate_user_not_deleted(jwtoken_decoded["id"]):
+                api.abort(401, "Token Not Matching User")
 
             return func(*args, **kwargs, jwtoken_decoded=jwtoken_decoded)
 
