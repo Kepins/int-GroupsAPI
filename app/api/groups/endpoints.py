@@ -68,5 +68,13 @@ class GroupsByID(Resource):
 
         return api_groups.marshal(group, group_created)
 
+    @api_groups.response(204, "No Content")
     def delete(self, id):
-        pass
+        group = db.Session.scalar(select(Group).where(Group.id == id))
+        if not group:
+            return None, 204
+
+        db.Session.delete(group)
+        db.Session.commit()
+
+        return None, 204
