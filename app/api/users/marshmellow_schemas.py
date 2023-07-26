@@ -22,3 +22,8 @@ class UserCreateSchema(Schema):
 class UserPatchSchema(Schema):
     first_name = fields.Str(required=False, validate=validate.Length(1))
     last_name = fields.Str(required=False, validate=validate.Length(1))
+
+
+class UserLoginSchema(Schema):
+    email = fields.Str(required=True, validate=validate.Email())
+    password = fields.Str(required=True)
