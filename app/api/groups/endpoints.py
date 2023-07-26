@@ -6,6 +6,7 @@ from app.api.groups.marshmellow_schemas import GroupCreatePutSchema, GroupPatchS
 from app.api.groups.namespace import api_groups
 from app.api.groups.restx_models import group_create, group_created
 from app.validation import validate_schema, validate_jwt
+from app.validation.existance import check_user_exists
 from models import User, Group
 
 
@@ -17,17 +18,13 @@ class Groups(Resource):
     @validate_schema(api_groups, GroupCreatePutSchema)
     @validate_jwt(api_groups)
     def post(self, validated_schema, jwtoken_decoded):
-        admin = db.Session.scalar(
-            select(User).where(User.id == validated_schema["admin_id"])
-        )
-
-        if not admin or admin.is_deleted:
-            api_groups.abort(409, "Admin Not Found")
+        if not check_user_exists(validated_schema["admin_id"]):
+            return {"message": "Admin Not Found"}, 409
 
         group = Group(
             name=validated_schema["name"],
             description=validated_schema.get("description"),
-            admin=admin,
+            admin_id=validated_schema["admin_id"],
         )
 
         db.Session.add(group)
@@ -58,6 +55,7 @@ class GroupsByID(Resource):
     @api_groups.response(200, "Success", group_created)
     @api_groups.response(403, "Forbidden")
     @api_groups.response(404, "Not found")
+    @api_groups.response(409, "Conflict")
     @validate_schema(api_groups, GroupCreatePutSchema)
     @validate_jwt(api_groups)
     def put(self, id, validated_schema, jwtoken_decoded):
@@ -67,6 +65,9 @@ class GroupsByID(Resource):
 
         if group.admin_id != jwtoken_decoded["id"]:
             return {"message:": "Forbidden"}, 403
+
+        if not check_user_exists(validated_schema["admin_id"]):
+            return {"message": "New Admin Not Found"}, 409
 
         # iterate over every field (even NOT required)
         for key in GroupCreatePutSchema().fields.keys():
@@ -91,6 +92,11 @@ class GroupsByID(Resource):
 
         if group.admin_id != jwtoken_decoded["id"]:
             return {"message:": "Forbidden"}, 403
+
+        if "admin_id" in validated_schema and not check_user_exists(
+            validated_schema["admin_id"]
+        ):
+            return {"message": "New Admin Not Found"}, 409
 
         for key, value in validated_schema.items():
             setattr(group, key, value)
