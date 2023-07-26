@@ -17,8 +17,8 @@ class Config:
         self.SENDER_EMAIL = os.environ.get("SMTP_SENDER_EMAIL")
         self.SENDER_PASSWD = os.environ.get("SMTP_SENDER_PASSWD")
 
-        self.SECRET_DAN = os.environ.get("SECRET_DAN")
-        self.SECRET_JWT = os.environ.get("SECRET_JWT")
+        self.SECRET_KEY_ITSDANGEROUS = os.environ.get("SECRET_KEY_ITSDANGEROUS")
+        self.SECRET_KEY_JWT = os.environ.get("SECRET_KEY_JWT")
 
         # Expiration time of JWT in seconds
-        self.EXPIRATION_JWT = int(os.environ.get("EXPIRATION_JWT"))
+        self.EXPIRATION_JWT_SECONDS = int(os.environ.get("EXPIRATION_JWT_SECONDS"))

@@ -9,7 +9,7 @@ from tests.conftest import valid_auth_header
 def test_get_empty(app):
     resp = app.test_client().get(
         "/app/users/",
-        headers={"Authorization": valid_auth_header(1, app.config["SECRET_JWT"])},
+        headers={"Authorization": valid_auth_header(1, app.config["SECRET_KEY_JWT"])},
     )
 
     assert resp.status_code == 200
@@ -20,7 +20,9 @@ def test_get_exists(app_with_data):
     resp = app_with_data.test_client().get(
         "/app/users/",
         headers={
-            "Authorization": valid_auth_header(1, app_with_data.config["SECRET_JWT"])
+            "Authorization": valid_auth_header(
+                1, app_with_data.config["SECRET_KEY_JWT"]
+            )
         },
     )
 
@@ -35,7 +37,7 @@ def test_get_exists(app_with_data):
 def test_get_id_not_exist(app):
     resp = app.test_client().get(
         "/app/users/2",
-        headers={"Authorization": valid_auth_header(1, app.config["SECRET_JWT"])},
+        headers={"Authorization": valid_auth_header(1, app.config["SECRET_KEY_JWT"])},
     )
 
     assert resp.status_code == 404
@@ -45,7 +47,9 @@ def test_get_id_exists(app_with_data):
     resp = app_with_data.test_client().get(
         "/app/users/2",
         headers={
-            "Authorization": valid_auth_header(1, app_with_data.config["SECRET_JWT"])
+            "Authorization": valid_auth_header(
+                1, app_with_data.config["SECRET_KEY_JWT"]
+            )
         },
     )
 
@@ -63,7 +67,9 @@ def test_patch_all_fields(app_with_data):
         data=json.dumps({"first_name": "Adaś", "last_name": "Mały"}),
         content_type="application/json",
         headers={
-            "Authorization": valid_auth_header(2, app_with_data.config["SECRET_JWT"])
+            "Authorization": valid_auth_header(
+                2, app_with_data.config["SECRET_KEY_JWT"]
+            )
         },
     )
 
@@ -85,7 +91,9 @@ def test_patch_one_field(app_with_data):
         data=json.dumps({"last_name": "Mały"}),
         content_type="application/json",
         headers={
-            "Authorization": valid_auth_header(2, app_with_data.config["SECRET_JWT"])
+            "Authorization": valid_auth_header(
+                2, app_with_data.config["SECRET_KEY_JWT"]
+            )
         },
     )
 
@@ -107,7 +115,9 @@ def test_patch_wrong_field(app_with_data):
         data=json.dumps({"frst_name": "Jacek", "last_name": "Mały"}),
         content_type="application/json",
         headers={
-            "Authorization": valid_auth_header(2, app_with_data.config["SECRET_JWT"])
+            "Authorization": valid_auth_header(
+                2, app_with_data.config["SECRET_KEY_JWT"]
+            )
         },
     )
 
@@ -122,7 +132,9 @@ def test_delete_not_exists(app_with_data):
     resp = app_with_data.test_client().delete(
         "/app/users/5",
         headers={
-            "Authorization": valid_auth_header(5, app_with_data.config["SECRET_JWT"])
+            "Authorization": valid_auth_header(
+                5, app_with_data.config["SECRET_KEY_JWT"]
+            )
         },
     )
 
@@ -134,7 +146,9 @@ def test_delete_exists(app_with_data):
     resp = app_with_data.test_client().delete(
         "/app/users/2",
         headers={
-            "Authorization": valid_auth_header(2, app_with_data.config["SECRET_JWT"])
+            "Authorization": valid_auth_header(
+                2, app_with_data.config["SECRET_KEY_JWT"]
+            )
         },
     )
 

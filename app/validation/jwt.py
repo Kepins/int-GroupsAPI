@@ -25,7 +25,7 @@ def validate_jwt(api: Namespace):
             try:
                 jwtoken_decoded = jwt.decode(
                     jwtoken_encoded,
-                    current_app.config["SECRET_JWT"],
+                    current_app.config["SECRET_KEY_JWT"],
                     algorithms=["HS256"],
                 )
             except jwt.ExpiredSignatureError:
