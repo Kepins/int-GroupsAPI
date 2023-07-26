@@ -2,7 +2,7 @@ from flask_restx import Resource
 from sqlalchemy import select
 
 from app import db
-from app.api.groups.marshmellow_schemas import GroupCreateSchema
+from app.api.groups.marshmellow_schemas import GroupCreateSchema, GroupPatchSchema
 from app.api.groups.namespace import api_groups
 from app.api.groups.restx_models import group_create, group_created
 from app.validation import validate_schema
@@ -16,7 +16,9 @@ class Groups(Resource):
     @api_groups.response(409, "Admin Not Found")
     @validate_schema(api_groups, GroupCreateSchema)
     def post(self, validated_schema):
-        admin = db.Session.scalar(select(User).where(User.id == validated_schema["admin_id"]))
+        admin = db.Session.scalar(
+            select(User).where(User.id == validated_schema["admin_id"])
+        )
 
         if not admin or admin.is_deleted:
             api_groups.abort(409, "Admin Not Found")
@@ -24,7 +26,7 @@ class Groups(Resource):
         group = Group(
             name=validated_schema["name"],
             description=validated_schema.get("description"),
-            admin=admin
+            admin=admin,
         )
 
         db.Session.add(group)
@@ -49,8 +51,22 @@ class GroupsByID(Resource):
     def put(self, id):
         pass
 
-    def patch(self, id):
-        pass
+    @api_groups.expect(group_create)
+    @api_groups.response(200, "Success", group_created)
+    @api_groups.response(404, "Not found")
+    @validate_schema(api_groups, GroupPatchSchema)
+    def patch(self, id, validated_schema):
+        group = db.Session.scalar(select(Group).where(Group.id == id))
+        if not group:
+            return {"message": "Not Found"}, 404
+
+        for key, value in validated_schema.items():
+            setattr(group, key, value)
+
+        db.Session.add(group)
+        db.Session.commit()
+
+        return api_groups.marshal(group, group_created)
 
     def delete(self, id):
         pass
