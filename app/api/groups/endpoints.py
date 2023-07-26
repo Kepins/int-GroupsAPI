@@ -5,7 +5,7 @@ from app import db
 from app.api.groups.marshmellow_schemas import GroupCreatePutSchema, GroupPatchSchema
 from app.api.groups.namespace import api_groups
 from app.api.groups.restx_models import group_create, group_created
-from app.validation import validate_schema
+from app.validation import validate_schema, validate_jwt
 from models import User, Group
 
 
@@ -15,7 +15,8 @@ class Groups(Resource):
     @api_groups.response(201, "Success", group_created)
     @api_groups.response(409, "Admin Not Found")
     @validate_schema(api_groups, GroupCreatePutSchema)
-    def post(self, validated_schema):
+    @validate_jwt(api_groups)
+    def post(self, validated_schema, jwtoken_decoded):
         admin = db.Session.scalar(
             select(User).where(User.id == validated_schema["admin_id"])
         )
@@ -35,7 +36,8 @@ class Groups(Resource):
         return api_groups.marshal(group, group_created), 201
 
     @api_groups.response(200, "Success", [group_created])
-    def get(self):
+    @validate_jwt(api_groups)
+    def get(self, jwtoken_decoded):
         groups = db.Session.scalars(select(Group))
 
         return [api_groups.marshal(group, group_created) for group in groups]
@@ -45,7 +47,8 @@ class Groups(Resource):
 class GroupsByID(Resource):
     @api_groups.response(200, "Success", group_created)
     @api_groups.response(404, "Not found")
-    def get(self, id):
+    @validate_jwt(api_groups)
+    def get(self, id, jwtoken_decoded):
         group = db.Session.scalar(select(Group).where(Group.id == id))
         if not group:
             return {"message": "Not Found"}, 404
@@ -53,12 +56,17 @@ class GroupsByID(Resource):
 
     @api_groups.expect(group_create)
     @api_groups.response(200, "Success", group_created)
+    @api_groups.response(403, "Forbidden")
     @api_groups.response(404, "Not found")
     @validate_schema(api_groups, GroupCreatePutSchema)
-    def put(self, id, validated_schema):
+    @validate_jwt(api_groups)
+    def put(self, id, validated_schema, jwtoken_decoded):
         group = db.Session.scalar(select(Group).where(Group.id == id))
         if not group:
             return {"message": "Not Found"}, 404
+
+        if group.admin_id != jwtoken_decoded["id"]:
+            return {"message:": "Forbidden"}, 403
 
         # iterate over every field (even NOT required)
         for key in GroupCreatePutSchema().fields.keys():
@@ -72,12 +80,17 @@ class GroupsByID(Resource):
 
     @api_groups.expect(group_create)
     @api_groups.response(200, "Success", group_created)
+    @api_groups.response(403, "Forbidden")
     @api_groups.response(404, "Not found")
     @validate_schema(api_groups, GroupPatchSchema)
-    def patch(self, id, validated_schema):
+    @validate_jwt(api_groups)
+    def patch(self, id, validated_schema, jwtoken_decoded):
         group = db.Session.scalar(select(Group).where(Group.id == id))
         if not group:
             return {"message": "Not Found"}, 404
+
+        if group.admin_id != jwtoken_decoded["id"]:
+            return {"message:": "Forbidden"}, 403
 
         for key, value in validated_schema.items():
             setattr(group, key, value)
@@ -88,10 +101,15 @@ class GroupsByID(Resource):
         return api_groups.marshal(group, group_created)
 
     @api_groups.response(204, "No Content")
-    def delete(self, id):
+    @api_groups.response(403, "Forbidden")
+    @validate_jwt(api_groups)
+    def delete(self, id, jwtoken_decoded):
         group = db.Session.scalar(select(Group).where(Group.id == id))
         if not group:
             return None, 204
+
+        if group.admin_id != jwtoken_decoded["id"]:
+            return {"message:": "Forbidden"}, 403
 
         db.Session.delete(group)
         db.Session.commit()
