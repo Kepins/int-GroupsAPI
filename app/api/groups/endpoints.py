@@ -34,8 +34,11 @@ class Groups(Resource):
 
         return api_groups.marshal(group, group_created), 201
 
+    @api_groups.response(200, "Success", [group_created])
     def get(self):
-        pass
+        groups = db.Session.scalars(select(Group))
+
+        return [api_groups.marshal(group, group_created) for group in groups]
 
 
 @api_groups.route("/<id>")
