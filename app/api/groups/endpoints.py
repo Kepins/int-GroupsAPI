@@ -22,9 +22,7 @@ class Groups(Resource):
             return {"message": "Admin Not Found"}, 409
 
         group = Group(
-            name=validated_schema["name"],
-            description=validated_schema.get("description"),
-            admin_id=validated_schema["admin_id"],
+            **validated_schema
         )
 
         db.Session.add(group)
