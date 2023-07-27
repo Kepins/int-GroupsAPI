@@ -31,9 +31,7 @@ class Groups(Resource):
         if not check_user_exists(validated_schema["admin_id"]):
             return {"message": "Admin Not Found"}, 409
 
-        group = Group(
-            **validated_schema
-        )
+        group = Group(**validated_schema)
 
         db.Session.add(group)
         db.Session.commit()
@@ -169,6 +167,30 @@ class GroupsByIDInvite(Resource):
 
 @api_groups.route("/invitations/<token>")
 class GroupsInvitations(Resource):
+    @api_groups.response(200, "Success")
+    @api_groups.response(400, "Invalid Token")
+    @api_groups.response(404, "Not Found")
+    @api_groups.response(409, "User Already In Group")
     def get(self, token):
         ids = ids_from_invitation_token(token)
-        print(ids)
+        if not ids:
+            return {"message": "Invalid Token"}, 400
+
+        if not check_user_exists(ids["user_id"]):
+            return {"message": "User Not Found"}, 404
+
+        group = db.Session.scalar(select(Group).where(Group.id == ids["group_id"]))
+        if not group:
+            return {"message": "Group Not Found"}, 404
+
+        user = db.Session.scalar(select(User).where(User.id == ids["user_id"]))
+
+        if user in group.users:
+            return {"message": "User Already In Group"}, 409
+
+        group.users.append(user)
+
+        db.Session.add(group)
+        db.Session.commit()
+
+        return {"message": "Success"}, 200
