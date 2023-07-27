@@ -158,7 +158,7 @@ class GroupsByIDInvite(Resource):
         )
 
         try:
-            send_invitation_email(user.email, invitation_link)
+            send_invitation_email(user.email, invitation_link, group)
         except EmailServiceError(Exception):
             return {"message": "Email Service Down"}, 503, {"retry-after": "300"}
 
