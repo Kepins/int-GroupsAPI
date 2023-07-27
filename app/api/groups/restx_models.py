@@ -21,3 +21,5 @@ group_created = api_groups.model(
         "description": fields.String,
     },
 )
+
+group_invite = api_groups.model("GroupInvite", {"user_id": fields.Integer})

@@ -1,10 +1,20 @@
+from flask import url_for
 from flask_restx import Resource
 from sqlalchemy import select
 
 from app import db
-from app.api.groups.marshmellow_schemas import GroupCreatePutSchema, GroupPatchSchema
+from app.api.groups.marshmellow_schemas import (
+    GroupCreatePutSchema,
+    GroupPatchSchema,
+    GroupInviteSchema,
+)
 from app.api.groups.namespace import api_groups
-from app.api.groups.restx_models import group_create, group_created
+from app.api.groups.restx_models import group_create, group_created, group_invite
+from app.email import EmailServiceError, send_invitation_email
+from app.tokens.itsdangerous_tokens import (
+    create_invitation_token,
+    ids_from_invitation_token,
+)
 from app.validation import validate_schema, validate_jwt
 from app.validation.existance import check_user_exists
 from models import User, Group
@@ -120,3 +130,45 @@ class GroupsByID(Resource):
         db.Session.commit()
 
         return None, 204
+
+
+@api_groups.route("/<group_id>/invite")
+class GroupsByIDInvite(Resource):
+    @api_groups.expect(group_invite)
+    @api_groups.response(200, "Success")
+    @api_groups.response(404, "Not Found")
+    @validate_schema(api_groups, GroupInviteSchema)
+    @validate_jwt(api_groups)
+    def post(self, group_id, validated_schema, jwtoken_decoded):
+        group = db.Session.scalar(select(Group).where(Group.id == group_id))
+        if not group:
+            return {"message": "Group Not Found"}, 404
+
+        if group.admin_id != jwtoken_decoded["id"]:
+            return {"message": "Forbidden"}, 403
+
+        if not check_user_exists(validated_schema["user_id"]):
+            return {"message": "User Not Found"}, 404
+        user = db.Session.scalar(
+            select(User).where(User.id == validated_schema["user_id"])
+        )
+
+        invitation_link = url_for(
+            "api_bp.app/groups_groups_invitations",
+            _external=True,
+            token=create_invitation_token(user, group),
+        )
+
+        try:
+            send_invitation_email(user.email, invitation_link)
+        except EmailServiceError(Exception):
+            return {"message": "Email Service Down"}, 503, {"retry-after": "300"}
+
+        return {"message": "Success"}, 200
+
+
+@api_groups.route("/invitations/<token>")
+class GroupsInvitations(Resource):
+    def get(self, token):
+        ids = ids_from_invitation_token(token)
+        print(ids)
