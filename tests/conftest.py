@@ -93,7 +93,33 @@ def app_with_data(app):
 
     app.db.Session.add_all([user1, user2, user3, user4])
     app.db.Session.commit()
+
+    group2.users.append(user2)
+
     app.db.Session.add_all([group1, group2, group3, group4])
+    app.db.Session.commit()
+
+    event1 = Event(
+        name="event1",
+        description="Descr1",
+        group=group2,
+        date=datetime.datetime.utcnow(),
+    )
+
+    event2 = Event(
+        name="event2",
+        description="Descr2",
+        group=group2,
+        date=datetime.datetime.utcnow(),
+    )
+
+    event3 = Event(
+        name="event3",
+        group=group4,
+        date=datetime.datetime.utcnow(),
+    )
+
+    app.db.Session.add_all([event1, event2, event3])
     app.db.Session.commit()
 
     yield app
