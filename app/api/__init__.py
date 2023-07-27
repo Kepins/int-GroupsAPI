@@ -1,9 +1,9 @@
 from flask import Blueprint
 from flask_restx import Api
 
-from .groups import api_groups as api_groups
-from .status import api_status as api_status
-from .users import api_users as api_users
+from .groups import api_groups
+from .status import api_status
+from .users import api_users
 
 api_bp = Blueprint("api_bp", __name__)
 
