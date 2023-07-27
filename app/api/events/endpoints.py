@@ -18,7 +18,9 @@ class Events(Resource):
     @validate_schema(api_events, EventCreatePutSchema)
     @validate_jwt(api_events)
     def post(self, validated_schema, jwtoken_decoded):
-        group = db.Session.scalar(select(Group).where(Group.id == validated_schema["group_id"]))
+        group = db.Session.scalar(
+            select(Group).where(Group.id == validated_schema["group_id"])
+        )
         if not group:
             return {"message": "Group Not Found"}, 409
         if group.admin_id != jwtoken_decoded["id"]:
@@ -30,7 +32,6 @@ class Events(Resource):
         db.Session.commit()
 
         return {"message": "Created"}, 201
-
 
     @api_events.response(200, "Success", [event_created])
     @api_events.response(403, "Forbidden")
@@ -49,7 +50,14 @@ class EventsByID(Resource):
     @api_events.response(404, "Not Found")
     @validate_jwt(api_events)
     def get(self, id, jwtoken_decoded):
-        pass
+        event = db.Session.scalar(select(Event).where(Event.id == id))
+        if event.group.admin_id != jwtoken_decoded["id"]:
+            return {"message": "Forbidden"}, 403
+
+        if not event:
+            return {"message": "Not Found"}, 404
+
+        return api_events.marshal(event, event_created), 200
 
     @api_events.expect(event_create)
     @api_events.response(200, "Success", event_created)
