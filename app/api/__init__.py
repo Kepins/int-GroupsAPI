@@ -1,6 +1,7 @@
 from flask import Blueprint
 from flask_restx import Api
 
+from .events import api_events
 from .groups import api_groups
 from .status import api_status
 from .users import api_users
@@ -27,3 +28,4 @@ api = Api(
 api.add_namespace(api_status)
 api.add_namespace(api_users)
 api.add_namespace(api_groups)
+api.add_namespace(api_events)
