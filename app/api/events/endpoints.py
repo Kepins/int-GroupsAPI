@@ -1,9 +1,12 @@
 from flask_restx import Resource
+from sqlalchemy import select
 
+from app import db
 from app.api.events.marshmellow_schemas import EventCreatePutSchema, EventPatchSchema
 from app.api.events.namespace import api_events
 from app.api.events.restx_models import event_create, event_created
 from app.validation import validate_schema, validate_jwt
+from models import Group, Event
 
 
 @api_events.route("/")
@@ -15,7 +18,19 @@ class Events(Resource):
     @validate_schema(api_events, EventCreatePutSchema)
     @validate_jwt(api_events)
     def post(self, validated_schema, jwtoken_decoded):
-        pass
+        group = db.Session.scalar(select(Group).where(Group.id == validated_schema["group_id"]))
+        if not group:
+            return {"message": "Group Not Found"}, 409
+        if group.admin_id != jwtoken_decoded["id"]:
+            return {"message": "Group Does Not Belong To Requester"}, 403
+
+        event = Event(**validated_schema)
+
+        db.Session.add(event)
+        db.Session.commit()
+
+        return {"message": "Created"}, 201
+
 
     @api_events.response(200, "Success", [event_created])
     @api_events.response(403, "Forbidden")
