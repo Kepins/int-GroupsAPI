@@ -37,7 +37,9 @@ class Events(Resource):
     @api_events.response(404, "Not Found")
     @validate_jwt(api_events)
     def get(self, jwtoken_decoded):
-        pass
+        events = db.Session.scalars(select(Event))
+
+        return [api_events.marshal(event, event_created) for event in events], 200
 
 
 @api_events.route("/<id>")
