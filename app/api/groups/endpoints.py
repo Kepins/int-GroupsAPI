@@ -106,11 +106,12 @@ class GroupsByID(Resource):
 
     @api_groups.response(204, "No Content")
     @api_groups.response(403, "Forbidden")
+    @api_groups.response(404, "Not Found")
     @validate_jwt(api_groups)
     def delete(self, id, jwtoken_decoded):
         group = db.Session.scalar(select(Group).where(Group.id == id))
         if not group:
-            return None, 204
+            return None, 404
 
         if group.admin_id != jwtoken_decoded["id"]:
             return {"message": "Forbidden"}, 403
