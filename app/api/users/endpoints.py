@@ -7,7 +7,10 @@ from sqlalchemy import select
 
 from models import User
 from app import db
-from app.api.users.itsdangerous_tokens import user_id_from_token, create_token
+from app.tokens.itsdangerous_tokens import (
+    user_id_from_activation_token,
+    create_activation_token,
+)
 from app.api.users.marshmellow_schemas import (
     UserCreateSchema,
     UserPatchSchema,
@@ -47,7 +50,9 @@ class Users(Resource):
         db.Session.add(user)
         db.Session.commit()
         verification_url = url_for(
-            "api_bp.app/users_users_activate", _external=True, token=create_token(user)
+            "api_bp.app/users_users_activate",
+            _external=True,
+            token=create_activation_token(user),
         )
         try:
             send_verification_email(user.email, verification_url)
@@ -71,7 +76,7 @@ class UsersActivate(Resource):
     @api_users.response(200, "Success")
     @api_users.response(400, "Invalid Token")
     def get(self, token):
-        user_id = user_id_from_token(token)
+        user_id = user_id_from_activation_token(token)
         if not user_id:
             api_users.abort(400, "Invalid Token")
 
