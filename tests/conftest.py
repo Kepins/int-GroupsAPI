@@ -63,8 +63,37 @@ def app_with_data(app):
         email="julian.nowak@test.com",
         pass_hash=generate_password_hash("testPaswd13"),
     )
+    user4 = User(
+        first_name="Janusz",
+        last_name="Kowal",
+        email="kowal.janek@test.com",
+        pass_hash=generate_password_hash("testPaswd14"),
+    )
+    user4.is_deleted = True
+    user4.deletion_date = datetime.datetime.utcnow()
 
-    app.db.Session.add_all([user1, user2, user3])
+    group1 = Group(
+        admin=user1,
+        name="group1",
+    )
+    group2 = Group(
+        admin=user1,
+        name="group2",
+        description="This is group2",
+    )
+    group3 = Group(
+        name="group3",
+        description="This is group2",
+    )
+    group4 = Group(
+        name="group4",
+        description="This is group2",
+        admin=user3,
+    )
+
+    app.db.Session.add_all([user1, user2, user3, user4])
+    app.db.Session.commit()
+    app.db.Session.add_all([group1, group2, group3, group4])
     app.db.Session.commit()
 
     yield app

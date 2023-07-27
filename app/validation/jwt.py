@@ -7,6 +7,8 @@ from flask_restx import Namespace
 
 import re
 
+from app.validation.existance import check_user_exists
+
 
 def validate_jwt(api: Namespace):
     def decorator_validate(func):
@@ -32,6 +34,9 @@ def validate_jwt(api: Namespace):
                 api.abort(401, "Expired Token")
             except jwt.exceptions.InvalidTokenError:
                 api.abort(401, "Invalid Token")
+
+            if not check_user_exists(jwtoken_decoded["id"]):
+                api.abort(401, "Token Not Matching User")
 
             return func(*args, **kwargs, jwtoken_decoded=jwtoken_decoded)
 

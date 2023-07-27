@@ -116,12 +116,13 @@ class UsersByID(Resource):
         return api_users.marshal(user, user_created), 200
 
     @api_users.response(204, "No Content")
+    @api_users.response(404, "Not Found")
     @validate_jwt(api_users)
     @validate_jwt_id_matches_id(api_users)
     def delete(self, id, jwtoken_decoded):
         user = db.Session.scalar(select(User).where(User.id == id))
         if not user or user.is_deleted:
-            return None, 204
+            return None, 404
 
         user.is_deleted = True
         user.deletion_date = datetime.datetime.utcnow()
