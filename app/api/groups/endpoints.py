@@ -65,7 +65,6 @@ class GroupsByID(Resource):
     @api_groups.response(200, "Success", group_created)
     @api_groups.response(403, "Forbidden")
     @api_groups.response(404, "Not found")
-    @api_groups.response(409, "Conflict")
     @validate_schema(api_groups, GroupCreatePutSchema)
     @validate_jwt(api_groups)
     def put(self, id, validated_schema, jwtoken_decoded):
@@ -77,7 +76,7 @@ class GroupsByID(Resource):
             return {"message": "Forbidden"}, 403
 
         if not check_user_exists(validated_schema["admin_id"]):
-            return {"message": "New Admin Not Found"}, 409
+            return {"message": "New Admin Not Found"}, 404
 
         # iterate over every field (even NOT required)
         for key in GroupCreatePutSchema().fields.keys():
@@ -106,7 +105,7 @@ class GroupsByID(Resource):
         if "admin_id" in validated_schema and not check_user_exists(
             validated_schema["admin_id"]
         ):
-            return {"message": "New Admin Not Found"}, 409
+            return {"message": "New Admin Not Found"}, 404
 
         for key, value in validated_schema.items():
             setattr(group, key, value)
@@ -139,6 +138,7 @@ class GroupsByIDInvite(Resource):
     @api_groups.expect(group_invite)
     @api_groups.response(200, "Success")
     @api_groups.response(404, "Not Found")
+    @api_groups.response(503, "Email Service Down")
     @validate_schema(api_groups, GroupInviteSchema)
     @validate_jwt(api_groups)
     def post(self, group_id, validated_schema, jwtoken_decoded):

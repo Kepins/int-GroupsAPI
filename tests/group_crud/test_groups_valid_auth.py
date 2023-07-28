@@ -267,7 +267,7 @@ def test_patch_wrong_admin(app_with_data):
         },
     )
 
-    assert resp.status_code == 409
+    assert resp.status_code == 404
     assert resp.json["message"] == "New Admin Not Found"
     # db
     group = app_with_data.db.Session.scalar(select(Group).where(Group.id == 2))
