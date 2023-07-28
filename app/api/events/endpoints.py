@@ -5,7 +5,7 @@ from app import db
 from app.api.events.marshmellow_schemas import EventCreatePutSchema, EventPatchSchema
 from app.api.events.namespace import api_events
 from app.api.events.restx_models import event_create, event_created
-from app.validation import validate_schema, validate_jwt
+from app.validation import validate_schema, validate_jwt, validate_kwargs_are_int
 from models import Group, Event
 
 
@@ -48,6 +48,7 @@ class EventsByID(Resource):
     @api_events.response(200, "Success", event_created)
     @api_events.response(403, "Forbidden")
     @api_events.response(404, "Not Found")
+    @validate_kwargs_are_int(api_events, "id")
     @validate_jwt(api_events)
     def get(self, id, jwtoken_decoded):
         event = db.Session.scalar(select(Event).where(Event.id == id))
@@ -64,6 +65,7 @@ class EventsByID(Resource):
     @api_events.response(403, "Forbidden")
     @api_events.response(404, "Not found")
     @validate_schema(api_events, EventCreatePutSchema)
+    @validate_kwargs_are_int(api_events, "id")
     @validate_jwt(api_events)
     def put(self, id, validated_schema, jwtoken_decoded):
         event = db.Session.scalar(select(Event).where(Event.id == id))
@@ -96,6 +98,7 @@ class EventsByID(Resource):
     @api_events.response(403, "Forbidden")
     @api_events.response(404, "Not found")
     @validate_schema(api_events, EventPatchSchema)
+    @validate_kwargs_are_int(api_events, "id")
     @validate_jwt(api_events)
     def patch(self, id, validated_schema, jwtoken_decoded):
         event = db.Session.scalar(select(Event).where(Event.id == id))
@@ -125,6 +128,7 @@ class EventsByID(Resource):
     @api_events.response(204, "No Content")
     @api_events.response(403, "Forbidden")
     @api_events.response(404, "Not Found")
+    @validate_kwargs_are_int(api_events, "id")
     @validate_jwt(api_events)
     def delete(self, id, jwtoken_decoded):
         event = db.Session.scalar(select(Event).where(Event.id == id))

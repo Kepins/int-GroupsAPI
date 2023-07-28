@@ -15,7 +15,7 @@ from app.tokens.itsdangerous_tokens import (
     create_invitation_token,
     ids_from_invitation_token,
 )
-from app.validation import validate_schema, validate_jwt
+from app.validation import validate_schema, validate_jwt, validate_kwargs_are_int
 from app.validation.existance import check_user_exists
 from models import User, Group
 
@@ -54,6 +54,7 @@ class Groups(Resource):
 class GroupsByID(Resource):
     @api_groups.response(200, "Success", group_created)
     @api_groups.response(404, "Not found")
+    @validate_kwargs_are_int(api_groups, "id")
     @validate_jwt(api_groups)
     def get(self, id, jwtoken_decoded):
         group = db.Session.scalar(select(Group).where(Group.id == id))
@@ -66,6 +67,7 @@ class GroupsByID(Resource):
     @api_groups.response(403, "Forbidden")
     @api_groups.response(404, "Not found")
     @validate_schema(api_groups, GroupCreatePutSchema)
+    @validate_kwargs_are_int(api_groups, "id")
     @validate_jwt(api_groups)
     def put(self, id, validated_schema, jwtoken_decoded):
         group = db.Session.scalar(select(Group).where(Group.id == id))
@@ -93,6 +95,7 @@ class GroupsByID(Resource):
     @api_groups.response(403, "Forbidden")
     @api_groups.response(404, "Not found")
     @validate_schema(api_groups, GroupPatchSchema)
+    @validate_kwargs_are_int(api_groups, "id")
     @validate_jwt(api_groups)
     def patch(self, id, validated_schema, jwtoken_decoded):
         group = db.Session.scalar(select(Group).where(Group.id == id))
@@ -118,6 +121,7 @@ class GroupsByID(Resource):
     @api_groups.response(204, "No Content")
     @api_groups.response(403, "Forbidden")
     @api_groups.response(404, "Not Found")
+    @validate_kwargs_are_int(api_groups, "id")
     @validate_jwt(api_groups)
     def delete(self, id, jwtoken_decoded):
         group = db.Session.scalar(select(Group).where(Group.id == id))
@@ -140,6 +144,7 @@ class GroupsByIDInvite(Resource):
     @api_groups.response(404, "Not Found")
     @api_groups.response(503, "Email Service Down")
     @validate_schema(api_groups, GroupInviteSchema)
+    @validate_kwargs_are_int(api_groups, "group_id")
     @validate_jwt(api_groups)
     def post(self, group_id, validated_schema, jwtoken_decoded):
         group = db.Session.scalar(select(Group).where(Group.id == group_id))
