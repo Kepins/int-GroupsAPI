@@ -9,7 +9,7 @@ from tests.conftest import valid_auth_header, expired_auth_header
 def test_post_user_deleted(app_with_data):
     resp = app_with_data.test_client().post(
         "/app/groups/",
-        data=json.dumps({"admin_id": 3, "name": "group5", "description": "descr"}),
+        data=json.dumps({"name": "group5", "description": "descr"}),
         content_type="application/json",
         headers={
             "Authorization": valid_auth_header(

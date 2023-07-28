@@ -35,5 +35,5 @@ def test_profile2(app_with_data):
     assert resp.json["first_name"] == "Filip"
     assert resp.json["last_name"] == "Nowak"
     assert resp.json["email"] == "FiliNowak@test.com"
-    assert len(resp.json["groups"]) == 0
-    assert len(resp.json["events"]) == 0
+    assert len(resp.json["groups"]) == 2
+    assert len(resp.json["events"]) == 2

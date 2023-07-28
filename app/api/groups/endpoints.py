@@ -23,18 +23,14 @@ from models import User, Group
 @api_groups.route("/")
 class Groups(Resource):
     @api_groups.expect(group_create)
-    @api_groups.response(201, "Success", group_created)
-    @api_groups.response(404, "Admin Not Found")
+    @api_groups.response(201, "Created", group_created)
     @validate_schema(api_groups, GroupCreatePutSchema)
     @validate_jwt(api_groups)
     def post(self, validated_schema, jwtoken_decoded):
-        if not check_user_exists(validated_schema["admin_id"]):
-            return {"message": "Admin Not Found"}, 404
+        admin_id = jwtoken_decoded["id"]
 
-        group = Group(**validated_schema)
-        admin = db.Session.scalar(
-            select(User).where(User.id == validated_schema["admin_id"])
-        )
+        group = Group(**validated_schema, admin_id=admin_id)
+        admin = db.Session.scalar(select(User).where(User.id == admin_id))
         group.users.append(admin)
 
         db.Session.add(group)
@@ -77,9 +73,6 @@ class GroupsByID(Resource):
         if group.admin_id != jwtoken_decoded["id"]:
             return {"message": "Forbidden"}, 403
 
-        if not check_user_exists(validated_schema["admin_id"]):
-            return {"message": "New Admin Not Found"}, 404
-
         # iterate over every field (even NOT required)
         for key in GroupCreatePutSchema().fields.keys():
             value = validated_schema.get(key)
@@ -104,11 +97,6 @@ class GroupsByID(Resource):
 
         if group.admin_id != jwtoken_decoded["id"]:
             return {"message": "Forbidden"}, 403
-
-        if "admin_id" in validated_schema and not check_user_exists(
-            validated_schema["admin_id"]
-        ):
-            return {"message": "New Admin Not Found"}, 404
 
         for key, value in validated_schema.items():
             setattr(group, key, value)

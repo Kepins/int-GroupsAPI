@@ -52,10 +52,6 @@ def test_link_invitation_user_already_in_group(app_with_data):
     user = app_with_data.db.Session.scalar(select(User).where(User.id == 1))
     group = app_with_data.db.Session.scalar(select(Group).where(Group.id == 1))
 
-    group.users.append(user)
-    app_with_data.db.Session.add(group)
-    app_with_data.db.Session.commit()
-
     with app_with_data.app_context():
         token = create_invitation_token(user, group)
     resp = app_with_data.test_client().get(
@@ -67,7 +63,7 @@ def test_link_invitation_user_already_in_group(app_with_data):
 
 
 def test_link_invitation_valid(app_with_data):
-    user = app_with_data.db.Session.scalar(select(User).where(User.id == 1))
+    user = app_with_data.db.Session.scalar(select(User).where(User.id == 3))
     group = app_with_data.db.Session.scalar(select(Group).where(Group.id == 1))
 
     with app_with_data.app_context():
