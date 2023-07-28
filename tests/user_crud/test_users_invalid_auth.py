@@ -111,8 +111,8 @@ def test_patch_different_id(app_with_data):
     )
 
     # response
-    assert resp.status_code == 401
-    assert resp.json["message"] == "Id Not Matching"
+    assert resp.status_code == 403
+    assert resp.json["message"] == "Forbidden"
     # db
     user = app_with_data.db.Session.scalar(select(User).where(User.id == 2))
     assert user.first_name == "Adam"
@@ -129,8 +129,8 @@ def test_delete_different_id(app_with_data):
         },
     )
 
-    assert resp.status_code == 401
-    assert resp.json["message"] == "Id Not Matching"
+    assert resp.status_code == 403
+    assert resp.json["message"] == "Forbidden"
 
 
 def test_patch_expired_different_id(app_with_data):
