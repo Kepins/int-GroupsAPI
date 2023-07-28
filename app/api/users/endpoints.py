@@ -26,7 +26,7 @@ from app.api.users.jwt_tokens import jwt_token
 @api_users.route("/")
 class Users(Resource):
     @api_users.expect(user_create)
-    @api_users.response(201, "Success", user_created)
+    @api_users.response(201, "Created", user_created)
     @api_users.response(409, "Already Exists")
     @api_users.response(503, "Email Service Down")
     @validate_schema(api_users, UserCreateSchema)
