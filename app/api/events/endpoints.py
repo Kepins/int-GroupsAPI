@@ -14,7 +14,7 @@ class Events(Resource):
     @api_events.expect(event_create)
     @api_events.response(201, "Created", event_created)
     @api_events.response(403, "Forbidden")
-    @api_events.response(409, "Group Not Found")
+    @api_events.response(404, "Group Not Found")
     @validate_schema(api_events, EventCreatePutSchema)
     @validate_jwt(api_events)
     def post(self, validated_schema, jwtoken_decoded):
@@ -22,7 +22,7 @@ class Events(Resource):
             select(Group).where(Group.id == validated_schema["group_id"])
         )
         if not group:
-            return {"message": "Group Not Found"}, 409
+            return {"message": "Group Not Found"}, 404
         if group.admin_id != jwtoken_decoded["id"]:
             return {"message": "Group Does Not Belong To Requester"}, 403
 
@@ -34,8 +34,6 @@ class Events(Resource):
         return api_events.marshal(event, event_created), 201
 
     @api_events.response(200, "Success", [event_created])
-    @api_events.response(403, "Forbidden")
-    @api_events.response(404, "Not Found")
     @validate_jwt(api_events)
     def get(self, jwtoken_decoded):
         events = db.Session.scalars(
@@ -65,7 +63,6 @@ class EventsByID(Resource):
     @api_events.response(200, "Success", event_created)
     @api_events.response(403, "Forbidden")
     @api_events.response(404, "Not found")
-    @api_events.response(409, "Conflict")
     @validate_schema(api_events, EventCreatePutSchema)
     @validate_jwt(api_events)
     def put(self, id, validated_schema, jwtoken_decoded):
@@ -80,9 +77,9 @@ class EventsByID(Resource):
             select(Group).where(Group.id == validated_schema["group_id"])
         )
         if not new_group:
-            return {"message": "New Group Does Not Exist"}, 409
+            return {"message": "New Group Not Found"}, 404
         if new_group.admin_id != jwtoken_decoded["id"]:
-            return {"message": "New Group Does Not Belong To Requester"}, 409
+            return {"message": "New Group Does Not Belong To Requester"}, 403
 
         # iterate over every field (even NOT required)
         for key in EventCreatePutSchema().fields.keys():
@@ -98,7 +95,6 @@ class EventsByID(Resource):
     @api_events.response(200, "Success", event_created)
     @api_events.response(403, "Forbidden")
     @api_events.response(404, "Not found")
-    @api_events.response(409, "Conflict")
     @validate_schema(api_events, EventPatchSchema)
     @validate_jwt(api_events)
     def patch(self, id, validated_schema, jwtoken_decoded):
@@ -114,9 +110,9 @@ class EventsByID(Resource):
                 select(Group).where(Group.id == validated_schema["group_id"])
             )
             if not new_group:
-                return {"message": "New Group Does Not Exist"}, 409
+                return {"message": "New Group Not Found"}, 404
             if new_group.admin_id != jwtoken_decoded["id"]:
-                return {"message": "New Group Does Not Belong To Requester"}, 409
+                return {"message": "New Group Does Not Belong To Requester"}, 403
 
         for key, value in validated_schema.items():
             setattr(event, key, value)

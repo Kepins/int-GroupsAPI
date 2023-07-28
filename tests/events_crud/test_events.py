@@ -83,7 +83,7 @@ def test_post_group_not_found(app_with_data):
         },
     )
 
-    assert resp.status_code == 409
+    assert resp.status_code == 404
     assert resp.json["message"] == "Group Not Found"
     # db
     event_db = app_with_data.db.Session.scalar(select(Event).where(Event.id == 4))
@@ -232,8 +232,8 @@ def test_put_new_group_not_exists(app_with_data):
         },
     )
 
-    assert resp.status_code == 409
-    assert resp.json["message"] == "New Group Does Not Exist"
+    assert resp.status_code == 404
+    assert resp.json["message"] == "New Group Not Found"
     # db
     event_db = app_with_data.db.Session.scalar(select(Event).where(Event.id == 1))
     assert event_db.group.id == 2
@@ -262,7 +262,7 @@ def test_put_new_group_not_owned(app_with_data):
         },
     )
 
-    assert resp.status_code == 409
+    assert resp.status_code == 403
     assert resp.json["message"] == "New Group Does Not Belong To Requester"
     # db
     event_db = app_with_data.db.Session.scalar(select(Event).where(Event.id == 1))
@@ -349,8 +349,8 @@ def test_patch_new_group_not_exists(app_with_data):
         },
     )
 
-    assert resp.status_code == 409
-    assert resp.json["message"] == "New Group Does Not Exist"
+    assert resp.status_code == 404
+    assert resp.json["message"] == "New Group Not Found"
     # db
     event_db = app_with_data.db.Session.scalar(select(Event).where(Event.id == 1))
     assert event_db.group.id == 2
@@ -379,7 +379,7 @@ def test_patch_new_group_not_owned(app_with_data):
         },
     )
 
-    assert resp.status_code == 409
+    assert resp.status_code == 403
     assert resp.json["message"] == "New Group Does Not Belong To Requester"
     # db
     event_db = app_with_data.db.Session.scalar(select(Event).where(Event.id == 1))
