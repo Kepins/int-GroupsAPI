@@ -3,7 +3,7 @@ import datetime
 from flask import url_for
 from flask_restx import Resource
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy import select
+from sqlalchemy import select, not_, and_
 
 from models import User
 from app import db
@@ -66,7 +66,7 @@ class Users(Resource):
     @api_users.response(200, "Success", [user_created])
     @validate_jwt(api_users)
     def get(self, jwtoken_decoded):
-        users = db.Session().scalars(select(User)).all()
+        users = db.Session().scalars(select(User).where(not_(User.is_deleted))).all()
 
         return [api_users.marshal(user, user_created) for user in users]
 
@@ -96,7 +96,9 @@ class UsersByID(Resource):
     @api_users.response(404, "Not Found")
     @validate_jwt(api_users)
     def get(self, id, jwtoken_decoded):
-        user = db.Session.scalar(select(User).where(User.id == id))
+        user = db.Session.scalar(
+            select(User).where(and_(User.id == id, not_(User.is_deleted)))
+        )
         if not user:
             return {"message": "Not Found"}, 404
         return api_users.marshal(user, user_created)

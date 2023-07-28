@@ -21,12 +21,25 @@ def test_get_exists(app_with_data):
     assert resp.json[1]["email"] == "adam.malysz@test.com"
     assert resp.json[1]["first_name"] == "Adam"
     assert resp.json[1]["last_name"] == "Małysz"
-    assert len(resp.json) == 4
+    assert len(resp.json) == 3
 
 
 def test_get_id_not_exist(app_with_data):
     resp = app_with_data.test_client().get(
         "/app/users/7",
+        headers={
+            "Authorization": valid_auth_header(
+                1, app_with_data.config["SECRET_KEY_JWT"]
+            )
+        },
+    )
+
+    assert resp.status_code == 404
+
+
+def test_get_id_deleted(app_with_data):
+    resp = app_with_data.test_client().get(
+        "/app/users/4",
         headers={
             "Authorization": valid_auth_header(
                 1, app_with_data.config["SECRET_KEY_JWT"]
