@@ -24,14 +24,18 @@ from models import User, Group
 class Groups(Resource):
     @api_groups.expect(group_create)
     @api_groups.response(201, "Success", group_created)
-    @api_groups.response(409, "Admin Not Found")
+    @api_groups.response(404, "Admin Not Found")
     @validate_schema(api_groups, GroupCreatePutSchema)
     @validate_jwt(api_groups)
     def post(self, validated_schema, jwtoken_decoded):
         if not check_user_exists(validated_schema["admin_id"]):
-            return {"message": "Admin Not Found"}, 409
+            return {"message": "Admin Not Found"}, 404
 
         group = Group(**validated_schema)
+        admin = db.Session.scalar(
+            select(User).where(User.id == validated_schema["admin_id"])
+        )
+        group.users.append(admin)
 
         db.Session.add(group)
         db.Session.commit()

@@ -84,7 +84,7 @@ def test_post_create_for_deleted_user(app_with_data):
         },
     )
 
-    assert resp.status_code == 409
+    assert resp.status_code == 404
     assert resp.json["message"] == "Admin Not Found"
 
 
@@ -100,7 +100,7 @@ def test_post_create_for_nonexistent_user(app_with_data):
         },
     )
 
-    assert resp.status_code == 409
+    assert resp.status_code == 404
     assert resp.json["message"] == "Admin Not Found"
 
 
