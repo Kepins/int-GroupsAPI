@@ -151,3 +151,5 @@ def test_delete_exists(app_with_data):
     assert resp.data == b""
     assert user.is_deleted
     assert user.deletion_date is not None
+    assert user.groups == []
+    assert user.groups_admin == []

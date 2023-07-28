@@ -141,6 +141,8 @@ class UsersByID(Resource):
 
         user.is_deleted = True
         user.deletion_date = datetime.datetime.utcnow()
+        user.groups = []
+        user.groups_admin = []
         db.Session.add(user)
         db.Session.commit()
 
