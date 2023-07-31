@@ -30,8 +30,9 @@ Create **.env** and **.env.test** files with the same keys as **.env.example**:
 - *SMTP_SERVER* - hostname of smtp server
 - *SMTP_SENDER_EMAIL* - email that app will use
 - *SMTP_SENDER_PASSWD* - password for account
-- *SECRET_DAN* - key used for itsdangerous email verification
-- *SECRET_JWT* - key used for signing json web tokens
+- *SECRET_KEY_ITSDANGEROUS* - key used for itsdangerous email verification
+- *SECRET_KEY_JWT* - key used for signing json web tokens
+- *EXPIRATION_JWT_SECONDS* - how long is seconds will json web tokens be valid
 - *FLASK_RUN_HOST* - host on which the app will run
 - *FLASK_RUN_PORT* - port on which the app will run
 

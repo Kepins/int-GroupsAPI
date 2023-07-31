@@ -20,8 +20,8 @@ authorizations = {
 
 api = Api(
     api_bp,
-    title="API",
-    version="0.1",
+    title="GroupAPP",
+    version="1.0",
     authorizations=authorizations,
     security="apikey",
 )

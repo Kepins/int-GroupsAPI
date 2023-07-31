@@ -9,7 +9,7 @@ from tests.conftest import valid_auth_header
 def test_put_all_fields(app_with_data):
     resp = app_with_data.test_client().put(
         "/app/groups/2",
-        data=json.dumps({"admin_id": 1, "name": "Group222", "description": "descr"}),
+        data=json.dumps({"name": "Group222", "description": "descr"}),
         content_type="application/json",
         headers={
             "Authorization": valid_auth_header(

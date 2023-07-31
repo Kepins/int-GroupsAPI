@@ -3,7 +3,7 @@ import datetime
 from flask import url_for
 from flask_restx import Resource
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy import select
+from sqlalchemy import select, not_, and_
 
 from models import User
 from app import db
@@ -19,14 +19,19 @@ from app.api.users.marshmellow_schemas import (
 from app.api.users.namespace import api_users
 from app.api.users.restx_models import user_create, user_created, user_patch, user_login
 from app.email import send_verification_email, EmailServiceError
-from app.validation import validate_schema, validate_jwt, validate_jwt_id_matches_id
+from app.validation import (
+    validate_schema,
+    validate_jwt,
+    validate_jwt_id_matches_id,
+    validate_kwargs_are_int,
+)
 from app.api.users.jwt_tokens import jwt_token
 
 
 @api_users.route("/")
 class Users(Resource):
     @api_users.expect(user_create)
-    @api_users.response(201, "Success", user_created)
+    @api_users.response(201, "Created", user_created)
     @api_users.response(409, "Already Exists")
     @api_users.response(503, "Email Service Down")
     @validate_schema(api_users, UserCreateSchema)
@@ -66,7 +71,7 @@ class Users(Resource):
     @api_users.response(200, "Success", [user_created])
     @validate_jwt(api_users)
     def get(self, jwtoken_decoded):
-        users = db.Session().scalars(select(User)).all()
+        users = db.Session().scalars(select(User).where(not_(User.is_deleted))).all()
 
         return [api_users.marshal(user, user_created) for user in users]
 
@@ -94,9 +99,12 @@ class UsersActivate(Resource):
 class UsersByID(Resource):
     @api_users.response(200, "Success", user_created)
     @api_users.response(404, "Not Found")
+    @validate_kwargs_are_int(api_users, "id")
     @validate_jwt(api_users)
     def get(self, id, jwtoken_decoded):
-        user = db.Session.scalar(select(User).where(User.id == id))
+        user = db.Session.scalar(
+            select(User).where(and_(User.id == id, not_(User.is_deleted)))
+        )
         if not user:
             return {"message": "Not Found"}, 404
         return api_users.marshal(user, user_created)
@@ -105,6 +113,7 @@ class UsersByID(Resource):
     @api_users.response(200, "Success", user_created)
     @api_users.response(404, "Not Found")
     @validate_schema(api_users, UserPatchSchema)
+    @validate_kwargs_are_int(api_users, "id")
     @validate_jwt(api_users)
     @validate_jwt_id_matches_id(api_users)
     def patch(self, validated_schema, id, jwtoken_decoded):
@@ -122,6 +131,7 @@ class UsersByID(Resource):
 
     @api_users.response(204, "No Content")
     @api_users.response(404, "Not Found")
+    @validate_kwargs_are_int(api_users, "id")
     @validate_jwt(api_users)
     @validate_jwt_id_matches_id(api_users)
     def delete(self, id, jwtoken_decoded):
@@ -131,6 +141,8 @@ class UsersByID(Resource):
 
         user.is_deleted = True
         user.deletion_date = datetime.datetime.utcnow()
+        user.groups = []
+        user.groups_admin = []
         db.Session.add(user)
         db.Session.commit()
 

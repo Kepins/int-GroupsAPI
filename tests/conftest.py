@@ -94,7 +94,10 @@ def app_with_data(app):
     app.db.Session.add_all([user1, user2, user3, user4])
     app.db.Session.commit()
 
+    group1.users.append(user1)
+    group2.users.append(user1)
     group2.users.append(user2)
+    group2.users.append(user3)
 
     app.db.Session.add_all([group1, group2, group3, group4])
     app.db.Session.commit()

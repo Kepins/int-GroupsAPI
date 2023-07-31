@@ -6,7 +6,6 @@ from app.api.users.restx_models import user_created
 group_create = api_groups.model(
     "GroupCreate",
     {
-        "admin_id": fields.Integer,
         "name": fields.String,
         "description": fields.String,
     },
