@@ -1,4 +1,9 @@
 .env
 .env.example
 .env.test
+.env.old
+web.env
+db.env
+venv
 .pytest_cache
+__pycache__

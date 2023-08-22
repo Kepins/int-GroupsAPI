@@ -1,16 +1,9 @@
 import os
 
-from dotenv import load_dotenv
-
 
 class Config:
-    def __init__(self, env=".env"):
-        load_dotenv(env)
-
-        self.POSTGRES_USER = os.environ["POSTGRESQL_USER"]
-        self.POSTGRES_PASSWD = os.environ["POSTGRESQL_PASSWD"]
-        self.POSTGRES_HOSTNAME = os.environ["POSTGRESQL_HOSTNAME"]
-        self.POSTGRES_DB_NAME = os.environ["POSTGRESQL_DB_NAME"]
+    def __init__(self):
+        self.ENGINE_URL = os.environ["ENGINE_URL"]
 
         self.SMTP_PORT = int(os.environ.get("SMTP_PORT"))
         self.SMTP_SERVER = os.environ.get("SMTP_SERVER")
