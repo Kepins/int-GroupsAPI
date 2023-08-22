@@ -1,0 +1,57 @@
+variables:
+    IMAGE_NAME: $DOCKER_HUB_USER/groupsapi
+    IMAGE_TAG: web-1.0
+
+
+stages:
+    - test
+    - build
+    - deploy
+
+run_tests:
+    stage: test
+    image: python:3.11.4
+    services:
+        - name: postgres:15
+          alias: db
+          variables:
+            POSTGRES_DB: groups_test_api
+            POSTGRES_USER: groups_api_test_admin
+            POSTGRES_PASSWORD: gapi_test_admin
+
+    script:
+        - pip install --no-cache-dir -r requirements.txt
+        - python -m pytest
+
+
+docker_image_build:
+    stage: build
+    image: docker:24.0.5
+    services:
+        - name: docker:24.0.5-dind
+          alias: docker
+    variables:
+        DOCKER_HOST: "tcp://docker:2375"
+        DOCKER_TLS_CERTDIR: ""
+    before_script:
+        - docker info
+        - docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_TOKEN
+    script:
+        - docker build -t $IMAGE_NAME:$IMAGE_TAG .
+        - docker push $IMAGE_NAME:$IMAGE_TAG
+
+
+digital_ocean_deploy:
+    stage: deploy
+    before_script:
+        - chmod 400 $SSH_KEY_DIGITAL_OCEAN
+    script:
+        - scp -o StrictHostKeyChecking=no -i $SSH_KEY_DIGITAL_OCEAN -T  $WEB_ENV $DB_ENV docker-compose.yml root@46.101.254.39:~/groupsapi
+        - ssh -o StrictHostKeyChecking=no -i $SSH_KEY_DIGITAL_OCEAN root@46.101.254.39 "
+            cd ~/groupsapi &&
+            mv WEB_ENV web.env &&
+            mv DB_ENV db.env &&
+            docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_TOKEN
+            "
+
+
