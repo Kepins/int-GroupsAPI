@@ -5,3 +5,5 @@
 # environmental variables
 .env
 .env.test
+web.env
+db.env
