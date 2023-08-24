@@ -9,6 +9,7 @@ services:
       - web.env
     ports:
       - "8000:8000"
+    restart: always
     depends_on:
       db:
         condition: service_healthy
@@ -16,6 +17,7 @@ services:
     image: postgres:15-alpine
     env_file:
       - db.env
+    restart: always
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
