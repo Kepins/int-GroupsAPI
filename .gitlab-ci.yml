@@ -46,7 +46,7 @@ digital_ocean_deploy:
     before_script:
         - chmod 400 $SSH_KEY_DIGITAL_OCEAN
     script:
-        - scp -o StrictHostKeyChecking=no -i $SSH_KEY_DIGITAL_OCEAN -T  $WEB_ENV $DB_ENV docker-compose.yml root@46.101.254.39:~/groupsapi
+        - scp -o StrictHostKeyChecking=no -i $SSH_KEY_DIGITAL_OCEAN -T  $WEB_ENV $DB_ENV deploy/docker-compose.yml root@46.101.254.39:~/groupsapi
         - ssh -o StrictHostKeyChecking=no -i $SSH_KEY_DIGITAL_OCEAN root@46.101.254.39 "
             cd ~/groupsapi &&
             mv WEB_ENV web.env &&
