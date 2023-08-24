@@ -39,6 +39,8 @@ docker_image_build:
     script:
         - docker build -t $IMAGE_NAME:$IMAGE_TAG .
         - docker push $IMAGE_NAME:$IMAGE_TAG
+    only:
+        - master
 
 
 digital_ocean_deploy:
@@ -46,14 +48,17 @@ digital_ocean_deploy:
     before_script:
         - chmod 400 $SSH_KEY_DIGITAL_OCEAN
     script:
-        - scp -o StrictHostKeyChecking=no -i $SSH_KEY_DIGITAL_OCEAN -T  $WEB_ENV $DB_ENV deploy/docker-compose.yml root@46.101.254.39:~/groupsapi
-        - ssh -o StrictHostKeyChecking=no -i $SSH_KEY_DIGITAL_OCEAN root@46.101.254.39 "
+        - scp -o StrictHostKeyChecking=no -i $SSH_KEY_DIGITAL_OCEAN -T  $WEB_ENV $DB_ENV deploy/docker-compose.yml $USERNAME_DIGITAL_OCEAN@$HOSTNAME_DIGITAL_OCEAN:~/groupsapi
+        - ssh -o StrictHostKeyChecking=no -i $SSH_KEY_DIGITAL_OCEAN $USERNAME_DIGITAL_OCEAN@$HOSTNAME_DIGITAL_OCEAN "
             cd ~/groupsapi &&
             docker ps -aq | xargs -r docker stop | xargs -r docker rm &&
             mv WEB_ENV web.env &&
             mv DB_ENV db.env &&
             docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_TOKEN &&
+            docker pull $IMAGE_NAME:$IMAGE_TAG &&
             docker compose up -d
             "
+    only:
+        - master
 
 
