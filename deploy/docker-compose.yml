@@ -8,7 +8,7 @@ services:
     env_file:
       - web.env
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"  # use nginx to proxy_pass to 127.0.0.1:8000
     restart: always
     depends_on:
       db:
