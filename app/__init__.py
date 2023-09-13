@@ -6,10 +6,10 @@ from app.config import Config
 db = AlchemyDatabase()
 
 
-def create_app(env=".env"):
+def create_app():
     app = Flask(__name__)
 
-    config = Config(env)
+    config = Config()
     app.config.from_object(config)
 
     db.init_app(app)

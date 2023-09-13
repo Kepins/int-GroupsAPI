@@ -29,15 +29,14 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
-env_values = dotenv_values(".env")
 section = config.config_ini_section
-config.set_section_option(section, "POSTGRESQL_USER", env_values["POSTGRESQL_USER"])
-config.set_section_option(section, "POSTGRESQL_PASSWD", env_values["POSTGRESQL_PASSWD"])
+config.set_section_option(section, "POSTGRESQL_USER", os.environ["POSTGRESQL_USER"])
+config.set_section_option(section, "POSTGRESQL_PASSWD", os.environ["POSTGRESQL_PASSWD"])
 config.set_section_option(
-    section, "POSTGRESQL_HOSTNAME", env_values["POSTGRESQL_HOSTNAME"]
+    section, "POSTGRESQL_HOSTNAME", os.environ["POSTGRESQL_HOSTNAME"]
 )
 config.set_section_option(
-    section, "POSTGRESQL_DB_NAME", env_values["POSTGRESQL_DB_NAME"]
+    section, "POSTGRESQL_DB_NAME", os.environ["POSTGRESQL_DB_NAME"]
 )
 
 

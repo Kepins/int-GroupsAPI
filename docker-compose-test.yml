@@ -1,0 +1,23 @@
+version: '3.9'
+
+name: "groupsapi-test"
+services:
+  web:
+    build: .
+    command: bash -c "python -m pytest"
+    env_file:
+      - web.test.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgres:15
+    env_file:
+      - db.test.env
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER" ]
+      interval: 2s
+      timeout: 5s
+      retries: 5

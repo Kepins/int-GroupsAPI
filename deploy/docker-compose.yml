@@ -1,0 +1,31 @@
+version: '3.9'
+
+name: "groupsapi-prod"
+services:
+  web:
+    image: szymonkepinskiprofilsoftware/groupsapi:web-1.0
+    command: bash -c "alembic upgrade head && gunicorn -b 0.0.0.0:8000 groupsapi:app"
+    env_file:
+      - web.env
+    ports:
+      - "127.0.0.1:8000:8000"  # use nginx to proxy_pass to 127.0.0.1:8000
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgres:15-alpine
+    env_file:
+      - db.env
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER" ]
+      interval: 2s
+      timeout: 5s
+      retries: 5
+
+
+volumes:
+  postgres_data:

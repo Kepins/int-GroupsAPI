@@ -1,9 +1,10 @@
 import datetime
+import os
 
 import jwt
 import pytest
 
-from dotenv import dotenv_values
+from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash
 
 from app import create_app
@@ -13,17 +14,14 @@ from models import User, Group, Event, Base
 
 @pytest.fixture
 def db():
-    env_test = dotenv_values(".env.test")
+    load_dotenv("web.test.env")
 
     class TestApp:
         config = {}
 
     app = TestApp()
     app.config = {
-        "POSTGRES_USER": env_test["POSTGRESQL_USER"],
-        "POSTGRES_PASSWD": env_test["POSTGRESQL_PASSWD"],
-        "POSTGRES_HOSTNAME": env_test["POSTGRESQL_HOSTNAME"],
-        "POSTGRES_DB_NAME": env_test["POSTGRESQL_DB_NAME"],
+        "ENGINE_URL": os.environ["ENGINE_URL"]
     }
     db = AlchemyDatabase()
     db.init_app(app)
@@ -38,7 +36,8 @@ def db():
 
 @pytest.fixture
 def app(db):
-    app = create_app(".env.test")
+    load_dotenv("web.test.env")
+    app = create_app()
     app.db = db
     yield app
 
